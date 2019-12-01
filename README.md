@@ -1,5 +1,4 @@
 # Flatland
-Virtual 2-D environment
 
 Flatland is a library that allows you to create a virtual 2-D environment in
 which you can put and move one or more virtual sensors to get virtual range
