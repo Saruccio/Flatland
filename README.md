@@ -20,10 +20,10 @@ and act as persons.
 
 If you do not plan to create a virtual environment, skip first step.
 
-1. Create a dedicated virtual environment
+### 1. Create a dedicated virtual environment
 '''python -m venv flatland'''
 
-2. Move into the virtual environment and activate it
+### 2. Move into the virtual environment and activate it
 Windows
 '''
 cd flatland
