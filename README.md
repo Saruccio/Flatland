@@ -34,14 +34,16 @@ The Flatland package requires a Python version >= 3.5
 
 **Windows** users can follow the instruction on the [official site](https://gitforwindows.org/) 
 
-**Linux Debian flavored** users can run '''apt-get install git'''
+**Linux Debian flavored** users can run ''' apt-get install git'''
 
 **Linux other flavours** users can install it from their package manager.
 
 
 ### 1. Create a dedicated virtual environment
 
-'''python3 -m venv flatland'''
+'''
+  python3 -m venv flatland
+'''
 
 
 
@@ -50,8 +52,8 @@ The Flatland package requires a Python version >= 3.5
 To clone a git repository you have first to move into the flatland directory and type the commands
 
 '''
-cd flatland
-git clone https://github.com/Saruccio/Flatland.git
+  cd flatland
+  git clone https://github.com/Saruccio/Flatland.git
 '''
 
 This will end up in a Flatland folder to appear in your virtual environment directory.
@@ -64,14 +66,14 @@ Move into the virtual environment and activate it
 **Windows**
 
 '''
-cd flatland
-Script\activate
+  cd flatland
+  Script\activate
 '''
 
 **Linux**
 '''
-cd flatland
-source bin/activate
+  cd flatland
+  source bin/activate
 '''
 
 this will ensure that all packages will be installed into the virtual environment without polluting the global (or external) Python runtime environment.
@@ -82,8 +84,8 @@ In oreder to make simpler the prerequisite installation, all prerequisite have b
   To install prerequisite type
   
  '''
- cd flatland
- pip install -r Flatland/requirements.txt
+   cd flatland
+   pip install -r Flatland/requirements.txt
  '''
  
  
