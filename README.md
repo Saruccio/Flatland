@@ -80,8 +80,8 @@ this will ensure that all packages will be installed into the virtual environmen
 
 #### 3.2 Install prerequisite
 
-In oreder to make simpler the prerequisite installation, all prerequisite have been listed into the file '''requirements.txt''' into the Flatland directory.
-  To install prerequisite type
+All prerequisite have been listed into the file *requirements.txt* lying into the Flatland directory.
+  To install them type
   
 ```
    cd flatland
@@ -97,7 +97,7 @@ cd Flatland\docs
 make html
 ```
 
-When build completes you che read the documentation loading the file `Flatland/docs/build/html/index.html` in a browser.
+When build completes you can read the documentation loading the file `Flatland/docs/build/html/index.html` in a browser.
 
 
 
