@@ -60,7 +60,7 @@ This will end up in a Flatland folder to appear in your virtual environment dire
 
 ### 3. Install prerequisite using *pip*
 
-#### Activate flatland virtualenv
+#### 3.1 Activate flatland virtualenv
 Move into the virtual environment and activate it
 
 **Windows**
@@ -78,7 +78,7 @@ Move into the virtual environment and activate it
 
 this will ensure that all packages will be installed into the virtual environment without polluting the global (or external) Python runtime environment.
 
-#### Install prerequisite
+#### 3.2 Install prerequisite
 
 In oreder to make simpler the prerequisite installation, all prerequisite have been listed into the file '''requirements.txt''' into the Flatland directory.
   To install prerequisite type
@@ -88,6 +88,22 @@ In oreder to make simpler the prerequisite installation, all prerequisite have b
    pip install -r Flatland/requirements.txt
 ```
  
- 
+### 4. Build the documentation
+
+The documentation is written using the [Sphinx](http://www.sphinx-doc.org/en/master/) and you can build the last release in html format issuing following commands
+
+```
+cd Flatland\docs 
+make html
+```
+
+When build completes you che read the documentation loading the file `Flatland/docs/build/html/index.html` in a browser.
+
+
+
+
+
+
+
 
 
