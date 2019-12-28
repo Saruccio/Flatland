@@ -268,17 +268,17 @@ class Vehicle():
         if self.tracing is True:
             self.light_plot()
 
-    def move(self, dir: str, distance: float):
+    def linear_move(self, dir: str, distance: float):
         """
-        Place the vehicle at the end of the segment of length 'distance'
-        along the direction defined by its orientation.
-
+        Returns the new position of the vehicle after a linear move
+        in the direction and for the length specified by parameters
         :Arguments:
         :param dir: direction of the desired movement. Could take only two values forward and backward
         :type dir: Vehicle constants FORWARD, FWD, BACKWARD, BACK
         :param distance: distance at which the vehicle will stop. Negative values will be transformed in positive.
         :type distance: float in length unit defined for the overall simulation.
-         
+        :Return:
+        :type: tuple (x, y)
         """
         abs_dist = np.abs(distance)
         
@@ -296,6 +296,22 @@ class Vehicle():
         # Now traslate vehicle at that point
         x_dest = self.position.x + move_pt.x
         y_dest = self.position.y + move_pt.y
+        
+        return (x_dest, y_dest)        
+
+    def move(self, dir: str, distance: float):
+        """
+        Place the vehicle at the end of the segment of length 'distance'
+        along the direction defined by its orientation.
+
+        :Arguments:
+        :param dir: direction of the desired movement. Could take only two values forward and backward
+        :type dir: Vehicle constants FORWARD, FWD, BACKWARD, BACK
+        :param distance: distance at which the vehicle will stop. Negative values will be transformed in positive.
+        :type distance: float in length unit defined for the overall simulation.
+         
+        """
+        x_dest, y_dest = self.linear_move(dir, distance)
         self.position = Point(x_dest, y_dest)
         self._draw_vehicle_shape()
         
