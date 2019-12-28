@@ -235,17 +235,16 @@ class Vehicle():
         pace = DataPath(self.position.x, self.position.y, self.orientation, self.seq_counter)
         self.path.append(pace)
 
-    def turn(self, dir: str, angle: float):
+    def ideal_turn(self, dir: str, angle: float):
         """
-        Turns the vehicle and sensor on it of angle degrees in the desired 
-        direction
+        Returns the vehicle new orientation
         
         :Arguments:
         :param dir: turn direction: LEFT or RIGHT
         :type dir: Vehicle.LEFT, Vehicle.RIGHT
         :param angle: rotation angle
         :type angle: float degrees
-        :returns: None
+        :returns: the delta orientation
         """
         # Transform and set sign of the rotation required
         if dir == Vehicle.LEFT:
@@ -253,8 +252,22 @@ class Vehicle():
         else:
             rot_angle = -angle
         
+        return rot_angle
+
+    def turn(self, dir: str, angle: float):
+        """
+        Turns the vehicle and sensor on it of angle degrees in the desired
+        direction
+
+        :Arguments:
+        :param dir: turn direction: LEFT or RIGHT
+        :type dir: Vehicle.LEFT, Vehicle.RIGHT
+        :param angle: rotation angle
+        :type angle: float degrees
+        :returns: None
+        """
         # Update chassis orientation and orient its shape
-        self.orientation += rot_angle
+        self.orientation += self.ideal_turn(dir, angle)
         self._draw_vehicle_shape()
         
         # Update sensor orientation
@@ -268,7 +281,7 @@ class Vehicle():
         if self.tracing is True:
             self.light_plot()
 
-    def linear_move(self, dir: str, distance: float):
+    def ideal_move(self, dir: str, distance: float):
         """
         Returns the new position of the vehicle after a linear move
         in the direction and for the length specified by parameters
@@ -311,7 +324,7 @@ class Vehicle():
         :type distance: float in length unit defined for the overall simulation.
          
         """
-        x_dest, y_dest = self.linear_move(dir, distance)
+        x_dest, y_dest = self.ideal_move(dir, distance)
         self.position = Point(x_dest, y_dest)
         self._draw_vehicle_shape()
         
