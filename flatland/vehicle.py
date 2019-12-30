@@ -235,15 +235,19 @@ class Vehicle():
         pace = DataPath(self.position.x, self.position.y, self.orientation, self.seq_counter)
         self.path.append(pace)
 
-    def ideal_turn(self, dir: str, angle: float):
+    def model_turn(self, dir: str, angle: float):
         """
-        Returns the vehicle new orientation
-        
+        Returns the vehicle new orientation after the requested turn.
+        In this default method an ideal turn (without any kind of
+        errors) is implemented.
+        Override or overload this method to implement you own turn model.
+
         :Arguments:
         :param dir: turn direction: LEFT or RIGHT
         :type dir: Vehicle.LEFT, Vehicle.RIGHT
         :param angle: rotation angle
         :type angle: float degrees
+
         :returns: the delta orientation
         """
         # Transform and set sign of the rotation required
@@ -251,7 +255,7 @@ class Vehicle():
             rot_angle = angle
         else:
             rot_angle = -angle
-        
+
         return rot_angle
 
     def turn(self, dir: str, angle: float):
@@ -267,7 +271,7 @@ class Vehicle():
         :returns: None
         """
         # Update chassis orientation and orient its shape
-        self.orientation += self.ideal_turn(dir, angle)
+        self.orientation += self.model_turn(dir, angle)
         self._draw_vehicle_shape()
         
         # Update sensor orientation
@@ -281,10 +285,14 @@ class Vehicle():
         if self.tracing is True:
             self.light_plot()
 
-    def ideal_move(self, dir: str, distance: float):
+    def model_move(self, dir: str, distance: float):
         """
-        Returns the new position of the vehicle after a linear move
-        in the direction and for the length specified by parameters
+        Returns the new position of the vehicle after the requested linear move.
+        In thi default method an ideal linear move is implemented.
+
+        Override or overload this method to implement your own linear move 
+        model (for example taking into account deterministic or random errors).
+
         :Arguments:
         :param dir: direction of the desired movement. Could take only two values forward and backward
         :type dir: Vehicle constants FORWARD, FWD, BACKWARD, BACK
@@ -324,7 +332,7 @@ class Vehicle():
         :type distance: float in length unit defined for the overall simulation.
          
         """
-        x_dest, y_dest = self.ideal_move(dir, distance)
+        x_dest, y_dest = self.model_move(dir, distance)
         self.position = Point(x_dest, y_dest)
         self._draw_vehicle_shape()
         
