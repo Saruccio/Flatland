@@ -114,17 +114,6 @@ class Vehicle():
     Every time the vehicle moves, the positiona and the orientation of each
     sensor must be updated
     """
-    
-    # Turn
-    LEFT = "L"
-    RIGHT = "R"
-
-    # Movement directions
-    FORWARD = "F"
-    FWD = "F"
-    BACKWARD = "B"
-    BACK = "B"
-    
     def __init__(self, length, width, name = "Vehicle", color = "r"):
         """
         Defines dimensions and graphical aspect of the vehicle
@@ -235,7 +224,7 @@ class Vehicle():
         pace = DataPath(self.position.x, self.position.y, self.orientation, self.seq_counter)
         self.path.append(pace)
 
-    def model_turn(self, dir: str, angle: float):
+    def model_turn(self, angle: float):
         """
         Returns the vehicle new orientation after the requested turn.
         In this default method an ideal turn (without any kind of
@@ -243,22 +232,17 @@ class Vehicle():
         Override or overload this method to implement you own turn model.
 
         :Arguments:
-        :param dir: turn direction: LEFT or RIGHT
-        :type dir: Vehicle.LEFT, Vehicle.RIGHT
-        :param angle: rotation angle
+        :param angle: rotation angle (positive to LEFT, negative to RIGHT)
         :type angle: float degrees
 
         :returns: the delta orientation
         """
-        # Transform and set sign of the rotation required
-        if dir == Vehicle.LEFT:
-            rot_angle = angle
-        else:
-            rot_angle = -angle
+        # Positive angles perform rotation toward left, negative toward
+        # right
 
-        return rot_angle
+        return angle
 
-    def turn(self, dir: str, angle: float):
+    def turn(self, angle: float):
         """
         Turns the vehicle and sensor on it of angle degrees in the desired
         direction
@@ -271,7 +255,7 @@ class Vehicle():
         :returns: None
         """
         # Update chassis orientation and orient its shape
-        self.orientation += self.model_turn(dir, angle)
+        self.orientation += self.model_turn(angle)
         self._draw_vehicle_shape()
         
         # Update sensor orientation
@@ -285,17 +269,17 @@ class Vehicle():
         if self.tracing is True:
             self.light_plot()
 
-    def model_move(self, dir: str, distance: float):
+    def model_move(self, distance: float):
         """
         Returns the new position of the vehicle after the requested linear move.
-        In thi default method an ideal linear move is implemented.
+        In this default method an ideal linear move is implemented.
+        Positve values for distance are for forward movement, negative for 
+        backward.
 
         Override or overload this method to implement your own linear move 
         model (for example taking into account deterministic or random errors).
 
         :Arguments:
-        :param dir: direction of the desired movement. Could take only two values forward and backward
-        :type dir: Vehicle constants FORWARD, FWD, BACKWARD, BACK
         :param distance: distance at which the vehicle will stop. Negative values will be transformed in positive.
         :type distance: float in length unit defined for the overall simulation.
         :Return:
@@ -308,7 +292,7 @@ class Vehicle():
         y_move = abs_dist * np.sin(np.deg2rad(self.orientation))
         
         # Calculate the actual point
-        if ((dir == Vehicle.BACKWARD) or (dir == Vehicle.BACK)):
+        if distance < 0:
             x_move = -x_move
             y_move = -y_move
         
@@ -320,7 +304,7 @@ class Vehicle():
         
         return (x_dest, y_dest)        
 
-    def move(self, dir: str, distance: float):
+    def move(self, distance: float):
         """
         Place the vehicle at the end of the segment of length 'distance'
         along the direction defined by its orientation.
@@ -332,7 +316,7 @@ class Vehicle():
         :type distance: float in length unit defined for the overall simulation.
          
         """
-        x_dest, y_dest = self.model_move(dir, distance)
+        x_dest, y_dest = self.model_move(distance)
         self.position = Point(x_dest, y_dest)
         self._draw_vehicle_shape()
         
@@ -469,43 +453,43 @@ def main():
     twv.mount_sensor((5, -5), -45, S3)
     
     # Now turn vehicle left and right a few times
-    twv.turn(Vehicle.LEFT, 45)
+    twv.turn(45)
     print(twv)
     twv.plot()
     
-    twv.move(Vehicle.FORWARD, 50)
+    twv.move(50)
     print(twv)
     twv.plot()
     
-    twv.turn(Vehicle.RIGHT, 20)
+    twv.turn(-20)
     print(twv)    
     twv.plot()
     
-    twv.move(Vehicle.FORWARD, 50)
+    twv.move(50)
     print(twv)
     twv.plot()
     
-    twv.turn(Vehicle.RIGHT, 30)
+    twv.turn(-30)
     print(twv)   
     twv.plot()
     
-    twv.move(Vehicle.FORWARD, 50)
+    twv.move(50)
     print(twv)
     twv.plot()
     
-    twv.turn(Vehicle.RIGHT, 40)
+    twv.turn(-40)
     print(twv)   
     twv.plot()
     
-    twv.move(Vehicle.FORWARD, 70)
+    twv.move(70)
     print(twv)
     twv.plot()
     
-    twv.turn(Vehicle.LEFT, 45)
+    twv.turn(45)
     print(twv)   
     twv.plot()
     
-    twv.move(Vehicle.BACK, 60)
+    twv.move(-60)
 
     # Plot it
     twv.plot()

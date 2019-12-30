@@ -111,9 +111,9 @@ S1 = Sensor(40, 60, "S1")
 twv.mount_sensor((length/2, 0), 0, S1)
 
 # Put it and orient it into the room
-twv.turn(Vehicle.LEFT, 90)
-twv.move(Vehicle.FWD, 50)
-twv.turn(Vehicle.RIGHT, 90)
+twv.turn(90)
+twv.move(50)
+twv.turn(-90)
 twv.plot()
 twv.trace(False)
 
@@ -122,27 +122,23 @@ twv.load_env(sim_env)
 
 # Prepare a list of movements
 actions = [
-            ("fwd", 50), ("tl", 90), ("scan", 1),("fwd", 30), ("scan", 1),
-            ("fwd", 30), ("scan", 1), ("fwd", 50), ("scan", 1),
-            ("fwd", 50), ("scan", 1), ("tr", 45), ("scan", 1), ("fwd", 40),
-            ("scan", 1), ("tl", 45), ("scan", 1), ("fwd", 10), ("scan", 1),
-            ("tl", 90), ("scan", 1), ("tr", 180), ("scan", 1),
-            ("tl", 90), ("fwd", 10), ("tl", 90), ("scan", 1),
-            ("tr", 180), ("scan", 1), ("tl", 90),
-            ("fwd", 10), ("tl", 120), ("scan", 1),
-            ("tr", 180), ("fwd", 20), ("tl", 90), ("scan", 1), ("tl", 60),
-            ("fwd", 50), ("tl", 80), ("scan", 1)
+            ("mv", 50), ("trn", 90), ("scan", 1),("mv", 30), ("scan", 1),
+            ("mv", 30), ("scan", 1), ("mv", 50), ("scan", 1),
+            ("mv", 50), ("scan", 1), ("trn", -45), ("scan", 1), ("mv", 40),
+            ("scan", 1), ("trn", 45), ("scan", 1), ("mv", 10), ("scan", 1),
+            ("trn", 90), ("scan", 1), ("trn", -180), ("scan", 1),
+            ("trn", 90), ("mv", 10), ("trn", 90), ("scan", 1),
+            ("trn", -180), ("scan", 1), ("trn", 90),
+            ("mv", 10), ("trn", 120), ("scan", 1),
+            ("trn", -180), ("mv", 20), ("trn", 90), ("scan", 1), ("trn", 60),
+            ("mv", 50), ("trn", 80), ("scan", 1)
             ]
 for action in actions:
     act, val = action
-    if act == "fwd":
-        twv.move(Vehicle.FWD, val)
-    elif act == "back":
-        twv.move(Vehicle.BACK, val)
-    elif act == "tl":
-        twv.turn(Vehicle.LEFT, val)
-    elif act == "tr":
-        twv.turn(Vehicle.RIGHT, val)
+    if act == "mv":
+        twv.move(val)
+    elif act == "trn":
+        twv.turn(val)
     elif act == "scan":
         scan_data = twv.scan("all", angle_step=val)
         # Plot scan of each sensor
