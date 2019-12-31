@@ -268,6 +268,25 @@ class Vehicle():
         # Perform light tracing if required
         if self.tracing is True:
             self.light_plot()
+            
+    def linear_move(self, distance: float):
+        """
+        Implements an ideal move forward of backward along the orientation
+        of the vehicle.
+        """
+        abs_dist = np.abs(distance)
+        
+        # Calculate the cartesian absolute coordinates of the destination point
+        x_move = abs_dist * np.cos(np.deg2rad(self.orientation))
+        y_move = abs_dist * np.sin(np.deg2rad(self.orientation))
+        
+        # Calculate the actual point
+        if distance < 0:
+            x_move = -x_move
+            y_move = -y_move
+            
+        return (x_move, y_move)
+
 
     def model_move(self, distance: float):
         """
@@ -285,17 +304,7 @@ class Vehicle():
         :Return:
         :type: tuple (x, y)
         """
-        abs_dist = np.abs(distance)
-        
-        # Calculate the cartesian absolute coordinates of the destination point
-        x_move = abs_dist * np.cos(np.deg2rad(self.orientation))
-        y_move = abs_dist * np.sin(np.deg2rad(self.orientation))
-        
-        # Calculate the actual point
-        if distance < 0:
-            x_move = -x_move
-            y_move = -y_move
-        
+        x_move, y_move = self.linear_move(distance)
         move_pt = Point(x_move, y_move)
         
         # Now traslate vehicle at that point
