@@ -235,12 +235,12 @@ class Vehicle():
         :param angle: rotation angle (positive to LEFT, negative to RIGHT)
         :type angle: float degrees
 
-        :returns: the delta orientation
+        :returns: the new orientation of the vehicle
         """
         # Positive angles perform rotation toward left, negative toward
         # right
-
-        return angle
+        rot_angle = self.orientation + angle
+        return rot_angle
 
     def turn(self, angle: float):
         """
@@ -255,7 +255,7 @@ class Vehicle():
         :returns: None
         """
         # Update chassis orientation and orient its shape
-        self.orientation += self.model_turn(angle)
+        self.orientation = self.model_turn(angle)
         self._draw_vehicle_shape()
         
         # Update sensor orientation
