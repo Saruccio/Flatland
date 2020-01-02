@@ -149,8 +149,13 @@ class Vehicle():
         # Flatland Environment 
         self.flatland = None
         
-        # Trecing flag
+        # Tracing flag
         self.tracing = False
+        
+        # Pose precision 
+        pprec = 1 # one decimal digit, enough for dimensions in cm and degrees
+        prec_str = "{:." + str(self.pprec) + "f}"
+        format_str = "{}: " + "({:." + str(prec) + "f}, " + "{:." + str(prec)
         
     def __str__(self):
         """
@@ -159,6 +164,7 @@ class Vehicle():
         -- position 
         -- orientation
         """
+        xpos, ypos = self.position
         return "{}: {} {} deg".format(self.name, self.position, self.orientation)
 
     def trace(self, onoff: bool = False):
@@ -268,6 +274,10 @@ class Vehicle():
         # Perform light tracing if required
         if self.tracing is True:
             self.light_plot()
+
+        # Trace vehicle pose and orientation
+        state_trace = "({}, {})".format(self.position, self.orientation)
+        logger.debug(state_trace)
             
     def linear_move(self, distance: float):
         """
@@ -339,6 +349,10 @@ class Vehicle():
         # Perform light tracing if required
         if self.tracing is True:
             self.light_plot()
+
+        # Trace vehicle pose and orientation
+        state_trace = "({}, {})".format(self.position, self.orientation)
+        logger.debug(state_trace)
 
     def load_env(self, flatland: FlatLand):
         """
