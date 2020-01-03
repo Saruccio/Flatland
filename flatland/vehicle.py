@@ -153,9 +153,11 @@ class Vehicle():
         self.tracing = False
         
         # Pose precision 
-        pprec = 1 # one decimal digit, enough for dimensions in cm and degrees
-        prec_str = "{:." + str(self.pprec) + "f}"
-        format_str = "{}: " + "({:." + str(prec) + "f}, " + "{:." + str(prec)
+        self.pprec = 1 # one decimal digit, enough for dimensions in cm and degrees
+        self.prec_str = "{:." + str(self.pprec) + "f}"
+        self.format_str = "{}: " + "(" + self.prec_str + ", " + self.prec_str + ") " + self.prec_str + "°"
+        # The expected string will have the format:
+        # <SRTNG>: (xxx.x, yyy.y) dddd.d°
         
     def __str__(self):
         """
@@ -165,7 +167,7 @@ class Vehicle():
         -- orientation
         """
         xpos, ypos = self.position
-        return "{}: {} {} deg".format(self.name, self.position, self.orientation)
+        return self.format_str.format(self.name, xpos, ypos, self.orientation)
 
     def trace(self, onoff: bool = False):
         """
@@ -276,8 +278,7 @@ class Vehicle():
             self.light_plot()
 
         # Trace vehicle pose and orientation
-        state_trace = "({}, {})".format(self.position, self.orientation)
-        logger.debug(state_trace)
+        logger.debug(self.__str__())
             
     def linear_move(self, distance: float):
         """
@@ -351,8 +352,7 @@ class Vehicle():
             self.light_plot()
 
         # Trace vehicle pose and orientation
-        state_trace = "({}, {})".format(self.position, self.orientation)
-        logger.debug(state_trace)
+        logger.debug(self.__str__())
 
     def load_env(self, flatland: FlatLand):
         """
