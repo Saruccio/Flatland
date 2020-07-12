@@ -62,6 +62,7 @@ class FlatLand():
         Shows the current plot.
         This function must be the last function called in the program flow.
         """
+        geom.live_plot(True)
         self.plot()
         geom.show(self.name)
 

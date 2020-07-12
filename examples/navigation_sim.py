@@ -14,6 +14,7 @@ All collected points are plotted in the virtual environment.
 
 import os
 import sys
+import time
 
 # Add the path of the flatland package
 sys.path.insert(0, os.path.abspath('../flatland'))
@@ -96,6 +97,9 @@ table.traslate(50,250)
 sim_env = FlatLand("Vehicle indoor navigation")
 sim_env.add_objects(room, pillar, chair1, chair2, table)
 logger.info("Bench points= {}".format(sim_env.size()))
+
+sim_env.show()
+#time.sleep(1)
 
 # Vehicle sizes (all dimensione in cm)
 length = 20

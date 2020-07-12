@@ -13,6 +13,7 @@ the comparison among virtual and real measures.
 
 import os
 import sys
+import time
 
 # Add the path of the flatland package
 sys.path.insert(0, os.path.abspath('../flatland'))
@@ -58,6 +59,8 @@ glass.move(-27.0, 45.0)
 desk_bench = FlatLand("Desk bench")
 desk_bench.add_objects(room, pen, glass)
 logger.info("Bench points= {}".format(desk_bench.size()))
+
+desk_bench.show()
 
 # Define the sensor as a simulation of the ultrasonic sensor HC-SR04 and pose it
 # at the origin of the Flatland

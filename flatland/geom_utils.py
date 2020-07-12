@@ -137,6 +137,11 @@ def plot(points: list, pen_trait: str = ".", pen_color: str = "k"):
     pen = pen_trait + pen_color
     plt.plot(xv, yv, pen, linewidth=.5, markersize=.5)
 
+def live_plot(on: bool):
+    if on:
+        plt.ion()
+    else:
+        plt.ioff()
 
 def show(title: str = "No title", label: str = ""):
     """Shows an already composed plot
@@ -150,6 +155,7 @@ def show(title: str = "No title", label: str = ""):
     plt.grid()
     plt.axis('equal')
     plt.show()
+    plt.pause(0.01)
 
 
 
