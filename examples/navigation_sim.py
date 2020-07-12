@@ -152,12 +152,17 @@ for action in actions:
     else:
         print("Unknown move {}".format(act))
 
-# Trace the last position on the vehicle
-twv.plot_path()
-twv.plot()
+    # Trace the last position on the vehicle
+    twv.plot_path()
+    # twv.plot()
 
-# Show overall picture
+    # Show overall picture
+    sim_env.show()
+
+twv.plot()
 sim_env.show()
 
-
+# Press any key to continue
+input("Press any key to continue")
+geom.close()
 
