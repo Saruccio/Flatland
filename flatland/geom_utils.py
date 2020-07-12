@@ -157,6 +157,11 @@ def show(title: str = "No title", label: str = ""):
     plt.show()
     plt.pause(0.01)
 
+def close():
+    """
+    Close current plot window
+    """
+    plt.close()
 
 
 # Calculation of point coordinates in a new coordinate system
