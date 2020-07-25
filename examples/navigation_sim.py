@@ -24,7 +24,6 @@ from trace import logger
 import copy
 
 import shapes
-from compound import CompoundShape
 from flatland import FlatLand
 from sensor import Sensor
 from vehicle import Vehicle
@@ -60,7 +59,7 @@ def chair_constructor(side, leg_side, name):
     leg4.color("r")
 
     legs = [leg1, leg2, leg3, leg4]
-    chair = CompoundShape(legs, name)
+    chair = shapes.CompoundShape(legs, name)
     return chair
 
 # Create and pose the chair into the room
@@ -87,7 +86,7 @@ def table_constructor(side1, side2, leg_side, name):
     leg4.color("r")
 
     legs = [leg1, leg2, leg3, leg4]
-    table = CompoundShape(legs, name)
+    table = shapes.CompoundShape(legs, name)
     return table
 
 table = table_constructor(70, 120, 6, "table")

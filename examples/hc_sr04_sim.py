@@ -25,7 +25,6 @@ import copy
 
 from shape import Shape
 import shapes
-from compound import CompoundShape
 from flatland import FlatLand
 import geom_utils as geom
 from sensor import Sensor
@@ -58,7 +57,7 @@ def chair_constructor():
     leg4.color("r")
 
     legs = [leg1, leg2, leg3, leg4]
-    chair = CompoundShape(legs, "chair")
+    chair = shapes.CompoundShape(legs, "chair")
     return chair
 
 # Create and pose the chair into the room

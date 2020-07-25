@@ -53,6 +53,7 @@ class Rectangle(Shape):
         # calculation and display
         self.reset()
 
+
 class Square(Rectangle):
     """
     Square is a simplified rectagle
@@ -138,6 +139,7 @@ class ArrowBase(Shape):
         # Call reset in order to populate actual point list for
         # calculation and display
         self.reset()
+
 
 class IsoscelesTriangle(ArrowBase):
     """
@@ -287,8 +289,19 @@ class SeqPolygon(Shape):
             logger.warning(warn_msg)
 
 
+class CompoundShape(Shape):
+    """Container of Shapes
 
+    If a list of Shapes is supplied at creation time, it will be used
+    to compose the compound object.
+    """
 
+    def __init__(self, shapes: list, name: str = ""):
+        """Get points fron each single Shape in list"""
+        super().__init__()
+        for shape in shapes:
+            self.shape_points += shape.get_points()
+        self.points = self.shape_points.copy()
 
 # Test section --------------------------------------------------------------
 def test1():
@@ -296,6 +309,7 @@ def test1():
     Basic shapes
     """
     # Box Test
+    logger.info("Rectangle")
     box = Rectangle(10, 5)
     box.show(shape_points=True)
     box.show()
@@ -305,18 +319,21 @@ def test1():
     box.show()
 
     # Circle test
+    logger.info("Circle")
     circ = Circle(7)
     circ.show(shape_points=True)
     circ.traslate(1, 2)
     circ.show()
 
     # Square test
+    logger.info("Square")
     sq = Square(3)
     sq.show(shape_points=True)
     sq.move(1, 2, 45)
     sq.show()
 
     # Arrow Base test
+    logger.info("ArrowBase")
     ar = ArrowBase(5, 15)
     ar.show(shape_points=True)
     ar.move(-2.5, 0, 75)
@@ -324,42 +341,70 @@ def test1():
     ar.show()
 
     # Triangle Test
+    logger.info("IsoscelesTriangle")
     tri = IsoscelesTriangle(12, 3)
     tri.move(5, 5, 25)
     tri.show()
 
 def test2():
-    """
-    Polygon test
-    """
+    """Polygon test"""
+
+    logger.info("Polygon test")
     # Polygon
     poly_sides = [('start', (10, 0)), ('up', 10), ('left', 10), ('down', 10)]
     #poly_sides = [('start', (10,0)), ('ZOT', 10), ('left', 10), ('down', 10)]
     poly = SeqPolygon(poly_sides)
-    poly.show(shape_points=True, pen_color="c")
+    poly.show(shape_points=True)
     poly.rotate(-30)
     poly.show()
 
 def test3():
-    """
-    Test more complex sequence polygon
-    """
+    """Test more complex sequence polygon"""
+
+    logger.info("Sequence polygon test")
     room_sides = [('start', (0, 0)), ('right', 380), ('up', 30), ('left', 50), ('up', 40), ('left', 20), ('up', 300), ('right', 20), ('up', 30), ('skip', 'yes'), ('up', 80), ('skip', 'off'), ('up', 50), ('left', 40), ('skip', 'on'),('left', 80), ('skip', 'off'), ('left', 210), ('down', 430) ]
     room = SeqPolygon(room_sides)
     logger.info("Num points= {}".format(room.size()))
     room.show()
 
+# Compound shape test
+def chair_constructor():
+    """Footprint of a four legged classic chair"""
+    leg_side = 5 # cm
+    leg1 = Square(leg_side)
+    leg1.color("r")
+    leg2 = Square(leg_side)
+    leg2.traslate(30, 0)
+    leg2.color("r")
+    leg3 = Square(leg_side)
+    leg3.traslate(30, 40)
+    leg3.color("k")
+    leg4 = Square(leg_side)
+    leg4.traslate(0, 40)
+    leg4.color("r")
+
+    legs = [leg1, leg2, leg3, leg4]
+    chair = CompoundShape(legs, "chair")
+    return chair
 
 
-def main():
+def test4():
+    """
+    Main function for test purposes only
+    """
+    chair = chair_constructor()
+    chair.rotate(45)
+    chair.move(10, 10, 15)
+    chair.show()
+
+def main_test():
     """
     Main function, for tests purposes only
     """
     test1()
-    #test2()
+    test2()
     test3()
-
-
+    test4()
 
 if __name__ == "__main__":
-    main()
+    main_test()

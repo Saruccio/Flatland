@@ -122,6 +122,7 @@ class Shape():
 
     def get_points(self, shape_points: bool = False):
         """Returns the actual shape of the geometric figure.
+
         If flag shape_points is True the original shape's points are returned
         """
         if shape_points is True:
