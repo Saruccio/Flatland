@@ -415,7 +415,7 @@ class Vehicle():
         name_point = Point(xp, yn)
         geom.annotate_point(name_point, self.name)
 
-    def light_plot(self):
+    def light_plot(self, show_name: bool=False):
         """
         A lighter version of plot method that plots only sensors and actual
         position of vehicle.
@@ -425,10 +425,11 @@ class Vehicle():
 
         # Plot actual vehicle position
         geom.plot_point(self.position)
-        xp, yp = self.position
-        yn = yp + 0.3
-        name_point = Point(xp, yn)
-        geom.annotate_point(name_point, self.name)
+        if show_name:
+            xp, yp = self.position
+            yn = yp + 0.3
+            name_point = Point(xp, yn)
+            geom.annotate_point(name_point, self.name)
 
     def plot_path(self, pen_color: str = "c"):
         """

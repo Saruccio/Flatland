@@ -19,6 +19,7 @@ import shapes
 # Compound Shape definition
 class CompoundShape():
     """Container of Shapes
+
     If a list of Shapes is supplied at creation time, it will be used
     to compose the compound object
     """

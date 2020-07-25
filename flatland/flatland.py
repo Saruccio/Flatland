@@ -57,12 +57,12 @@ class FlatLand():
         for sensor in self.sensors:
             self.sensors[sensor].plot()
 
-    def show(self):
+    def show(self, live: bool=False):
         """
         Shows the current plot.
         This function must be the last function called in the program flow.
         """
-        geom.live_plot(True)
+        geom.live_plot(live)
         self.plot()
         geom.show(self.name)
 

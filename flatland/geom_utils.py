@@ -152,7 +152,7 @@ def show(title: str = "No title", label: str = ""):
     plt.xlabel(xlabel)
     ylabel = label + " y"
     plt.ylabel(ylabel)
-    plt.grid()
+    #plt.grid()
     plt.axis('equal')
     plt.show()
     plt.pause(0.01)

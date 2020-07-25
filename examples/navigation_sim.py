@@ -98,11 +98,11 @@ sim_env = FlatLand("Vehicle indoor navigation")
 sim_env.add_objects(room, pillar, chair1, chair2, table)
 logger.info("Bench points= {}".format(sim_env.size()))
 
-sim_env.show()
+sim_env.show(live=True)
 #time.sleep(1)
 
 # Vehicle sizes (all dimensione in cm)
-length = 20
+length = 8
 width = 15
 color = "k"
 
@@ -154,15 +154,15 @@ for action in actions:
 
     # Trace the last position on the vehicle
     twv.plot_path()
-    # twv.plot()
+    #twv.light_plot()
 
     # Show overall picture
-    sim_env.show()
+    sim_env.show(True)
 
-twv.plot()
+twv.light_plot()
 sim_env.show()
 
 # Press any key to continue
-input("Press any key to continue")
-geom.close()
+# input("Press any key to continue")
+# geom.close()
 
