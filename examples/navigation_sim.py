@@ -37,6 +37,7 @@ room_sides = [('start', (0, 0)), ('right', 380), ('up', 30), ('left', 50),
               ('left', 40), ('skip', 'on'),('left', 80), ('skip', 'off'),
               ('left', 210), ('down', 430) ]
 room = shapes.SeqPolygon(room_sides)
+room.traslate(0, -50)
 logger.info("Room points= {}".format(room.size()))
 
 #  Some boxes
@@ -113,10 +114,7 @@ print(twv)
 S1 = Sensor(40, 60, "S1")
 twv.mount_sensor((length/2, 0), 0, S1)
 
-# Put it and orient it into the room
-twv.turn(90)
-twv.move(50)
-twv.turn(-90)
+# Put it into the room
 twv.plot()
 twv.trace(False)
 
@@ -133,8 +131,7 @@ actions = [
             ("trn", 90), ("mv", 10), ("trn", 90), ("scan", 1),
             ("trn", -180), ("scan", 1), ("trn", 90),
             ("mv", 10), ("trn", 120), ("scan", 1),
-            ("trn", -180), ("mv", 20), ("trn", 90), ("scan", 1), ("trn", 60),
-            ("mv", 50), ("trn", 80), ("scan", 1)
+            ("trn", -180), ("mv", 20),
             ]
 for action in actions:
     act, val = action
@@ -161,7 +158,4 @@ for action in actions:
 twv.light_plot()
 sim_env.show()
 
-# Press any key to continue
-# input("Press any key to continue")
-# geom.close()
 

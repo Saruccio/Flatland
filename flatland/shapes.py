@@ -366,6 +366,8 @@ def test3():
     room = SeqPolygon(room_sides)
     logger.info("Num points= {}".format(room.size()))
     room.show()
+    room.traslate(0, -50)
+    room.show()
 
 # Compound shape test
 def chair_constructor():
