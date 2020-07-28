@@ -16,24 +16,19 @@ import matplotlib.pyplot as plt
 
 
 def cart2pol(x: float, y: float):
-    """Static method for coordinate conversion fron cartesian (rectangular)
-    to polar
-    """
+    """Coordinate conversion fron cartesian (rectangular)to polar"""
     rho = np.sqrt(x**2 + y**2)
     phi = np.arctan2(y, x)
     return (rho, phi)
 
 def pol2cart(rho: float, phi: float):
-    """Static method for coordinate conversion from polar to cartesian
-    """
+    """Coordinate conversion from polar to cartesian"""
     x = rho*np.cos(phi)
     y = rho*np.sin(phi)
     return (x, y)
 
 def to_polar(points: list):
-    """Static method convertings all tuple points (x, y) contained in
-    a list from cartesian coordinates to polar ones
-    """
+    """Convert all points (x, y) contained in a list from cartesian coordinates to polar ones"""
     polar_points = []
     for point in points:
         x, y = point
@@ -41,9 +36,7 @@ def to_polar(points: list):
     return polar_points
 
 def to_rect(points):
-    """Static method converting all tuple points (rho, phi) contained in
-    a list from polar coordinates into cartesian ones
-    """
+    """Convert all tuple points (rho, phi) contained in a list from polar coordinates into cartesian ones"""
     cart_points = []
     for point in points:
         cart_points.append(pol2cart(*point))
@@ -60,6 +53,19 @@ def rotate(points: list, angle: float, rad: bool = False):
     - add angle to the angle of each point
     - convert new points in rectangular coordinates
 
+    Parameters
+    ----------
+    points : list
+        list of tuples (x, y)
+    angle : float
+        rotation angle
+    rad : bool
+        flag indicating if angle is expressed in radiant.
+        Defaults to False
+
+    Return
+    ------
+    A list of tuples (x, y)
     """
     # Polar conversion of the actual (last modification) Shape
     polar_shape = to_polar(points)
@@ -80,6 +86,7 @@ def rotate(points: list, angle: float, rad: bool = False):
 
 def traslate(points: list, dx: float, dy: float):
     """Traslate each point of a list of dx and dy length.
+
     It's a differential traslation, not absoluta at point.
     The traslation action will be performed on the actual points of
     the Shape, that is on the last its transformation
