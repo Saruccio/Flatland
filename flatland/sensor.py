@@ -88,6 +88,12 @@ class Sensor():
         # Each instance of a sensor have its own point of view
         self.local_polar_points = []
 
+        # For debugging purposes, store the measured point and real point
+        # of the last read.
+        # Point are in polar coordinate with anglein deg
+        self.measured_point = ()
+        self.detected_point = ()
+
     def sensor_shape(self):
         """
         Returns an instance of the default sensor shape, an arrow in this case.
@@ -246,8 +252,9 @@ class Sensor():
         if spov is True:
             self._sensor_point_of_view()
 
-    def move(self, position: tuple, angle: float, rad: bool = False):
-        """
+    def place(self, position: tuple, angle: float, rad: bool = False):
+        """Place the sensor at given position and orientation
+
         Rotate the sensor first and traslate after
         """
         # Now move the sensor shape accordingly
@@ -286,35 +293,35 @@ class Sensor():
         self.plot()
         self.shape.show()
 
-    def read(self, at_angle: float = 0.0) -> (tuple, tuple, tuple):
+    def read(self, at_angle: float = 0.0) -> (float, float):
         """
-        Calculates the simulated reading of the distance between the sensor
-        origin and the nearest object in the list passed as parameter 'venv'.
+        Simulates a range reading of the sensor.
+
+        Calculates the simulated reading as the distance between the sensor
+        origin and the nearest object il the simulated environment loaded.
 
         Simplest algoritm:
-        - get all points of all objects in the virtual enviroment
+        - get all points of all objects in the simulated enviroment
         - move these points in the coordinate system LOCAL to the sensor
         - transform all points into polar coordinates
         - filter all points in two steps:
           1. get all points with angle into the beam of the sensor
           2. get the point with the minimum of the module:
              ___this module is the reading of the sensor___
-        - transform the point of the measure in rectangular coordinates
-        - move the point into the GLOBAL coordinate system, that is the
-          one of the virtual enviroment.
 
         Parameters
-        at_angle - direction of the beam in degrees measured from the
-                   x axis (0 degrees) of the sensor
-                   This parameter will be used in scan operation
-                   In single measurement defaults to zero
+        ----------
+        at_angle :
+            float direction of the beam in degrees measured from the
+            x axis (0 degrees) of the sensor. This parameter will be used
+            in scan operation
+            In single measurement defaults to zero
 
-        Returns a tuple with 3 couples:
-        - (measure, at_angle_dir) in polar coordinates the point as seen by the
-                                  sensor, that is at the orientation angle.
-                                  Angle is expressed in degrees
-        - (measx, measy) in rect coordinates the measured point
-        - (realx, realy) in rect coordinates the real point detected
+        Return
+        ------
+        the tuple (measure, at_angle_dir) in polar coordinate at
+        the orientation angle.
+        Angle is expressed in degrees
         """
         # Filter taking only points into the beam
         # TODO - Make this filtering sorting points by angle and using list comprehensions
@@ -324,44 +331,36 @@ class Sensor():
             if (phi >= (at_angle_dir - self.beam/2)) and (phi <= (at_angle_dir + self.beam/2)):
                 into_beam_points.append((r, phi))
 
-        measured_point = ()
-        if into_beam_points != []:
-            # Get the point of minimum module
-            detected_point = min(into_beam_points)
+        if into_beam_points == []:
+            # If any, all points are too far for the sensor
+            return (0.0, at_angle)
 
-            # Get the distance
-            measure, theta = detected_point
+        # Get the point of minimum module
+        detected_point = min(into_beam_points)
+        self.detected_point = (detected_point[0], np.rad2deg(detected_point[1]))
 
-            # Control if the distance measured is in the range of the sensor
-            if measure > self.range:
-                measure = 0.0
+        # Get the distance only, discarding the detected point angle
+        measure, theta = self.detected_point
 
-            # Compose the measured point
-            meas_point = (measure, np.rad2deg(at_angle_dir))
+        # Control if the distance measured is in the range of the sensor
+        if measure > self.range:
+            measure = 0.0
 
-            # Transform these points into rectangular coordinates
-            pdetected_rect = geom.pol2cart(measure, theta)
-            pmeasured_rect = geom.pol2cart(measure, at_angle_dir)
-
-            # Return the point into the GLOBAL coordinate system
-            xo, yo = self.position
-            alpha = self.orientation # radiant
-            local_sys = (xo, yo, alpha, True)
-            g_detected_point = geom.localpos_to_globalpos(pdetected_rect, local_sys)
-            g_meas_point = geom.localpos_to_globalpos(pmeasured_rect, local_sys)
-
-            measured_point = (meas_point, g_meas_point, g_detected_point)
-            #logger.debug("MeasPoint: {}".format(measured_point))
-
-        return measured_point
+        # Compose the measured point
+        self.measured_point = (measure, at_angle)
+        return self.measured_point
 
 
-    def scan(self, angle_from: float, angle_to: float, step: float = 1) -> list:
+    def scan(self, angle_from: float, angle_to: float, step: float = 1.0) -> list:
         """
-        Scanner function run sensor 'reading' method getting a sequence of
+        Simulate mulitple sensor readings in an angle range.
+
+        Scanner function run sensor 'read' method getting a sequence of
         reagings at different angles.
         Angles from and to are related to the current orientation of the sensor,
-        that is:
+        that is are related to its reference system.
+
+        To make the scan, angle are calculeted as follow:
         - Start angle is sensor.orientation + angle_from
         - End angle is sensor.orientation + angle_to
         Minimum step is 1 deg.
@@ -370,10 +369,20 @@ class Sensor():
         Constraint is that angle_from < angle_to
 
         Angles are all in degreees.
-        At run end original sensor position is restored.
+        At the end of the scanning angle, the original sensor position is restored.
 
-        Returns a list of measured points as returned by 'read()' method
+        Parameters
+        ----------
+        angle_from : float
+        angle_to : float
+        step : float
+            defaults to 1 deg.
+
+        Return
+        ------
+        A list of measured points as returned by 'read()' method
         """
+
         # Save current sensor orientation
         sensor_orientation = self.orientation
 
