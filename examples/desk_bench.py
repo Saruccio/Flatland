@@ -28,6 +28,7 @@ from shapes import Circle, SeqPolygon
 from flatland import FlatLand
 import geom_utils as geom
 from sensor import Sensor
+import numpy as np
 
 
 # This Flatland environment is the virtualization of an empty desk where the
@@ -65,9 +66,9 @@ desk_bench.show()
 # Define the sensor as a simulation of the ultrasonic sensor HC-SR04 and pose it
 # at the origin of the Flatland
 # The sensor orientation is horizontal
-S1 = Sensor(name="HC_SR04", beam=45, range=60)
+S1 = Sensor(name="HC_SR04", beam=40, range=60)
 S1.set_color("k")
-S1.move((0.0, 0.0), 0)
+S1.place((0.0, 0.0), 0)
 
 # Make aware the sensor of the external environment
 S1.load_env(desk_bench.venv)
@@ -76,13 +77,28 @@ S1.load_env(desk_bench.venv)
 desk_bench.add_sensors(S1)
 
 # Put the sensor in vertical position and run a range scan
-S1.move((0, 0), 90)
+S1.place((0, 0), 90)
 scan_points = S1.scan(-90, 90)
+logger.info("Num. scan points= {}".format(len(scan_points)))
 
+# Scan points are in polar coordinates in the sensor reference system,
 # Get the range measurements related to the Flatland environment.
+
+# Transform point in rectangular coordinates
+rect_points = [geom.pol2cart(ppol[0], np.deg2rad(ppol[1])) for ppol in scan_points if ppol[0] != 0.0]
+logger.info("Num valid points= {}".format(len(rect_points)))
+
+# Transform the points as seen from the coordinate system external to the sensor,
+# given sensor position and orientation in the external coordinate system.
+xo, yo = S1.position
+alpha = S1.orientation # radiant
+sensor_sys = (xo, yo, alpha, True)
+
+meas_points = [geom.localpos_to_globalpos(rpoint, sensor_sys) for rpoint in rect_points]
+
 # The measured points are related to the external coordinate system.
-scan_meas = [t[1] for t in  scan_points]
-geom.plot(scan_meas)
+
+geom.plot(meas_points)
 
 # The range measurement simulated so far can be compared with the results
 # obtained during an experiment using a real sensor placed in the
