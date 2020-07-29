@@ -38,21 +38,26 @@ class Sensor():
     supplied.
     """
 
-
-    def __init__(self, beam: float, range: float, name: str = "Sensor"):
+    def __init__(self, name: str, beam: float, range: float):
         """
+        Set physical sensor parametrs
+
         Parameters
-        name : Mandatory name it must be unique
-        position: tuple (x, y)
-        alpha: float, angle rotation in degrees
-        beam: sensor beam in degrees
-        range: maximum measurable distance
+        ----------
+        name : str
+            Mandatory name it must be unique
+        beam: float
+            sensor beam width in degrees
+        range: float
+            maximum measurable distance
 
         Into the class, angles are stored always in radiant
         """
         # Set sensor properties
         self.name = name
         self.color = "g"
+
+        # Sensor position and orientation in the global reference system
         self.position = (0, 0)
         self.orientation = 0  # radiant
 
