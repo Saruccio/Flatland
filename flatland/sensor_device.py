@@ -32,6 +32,7 @@ import numpy as np
 from collections import namedtuple
 
 # Project imports
+import geom_utils as geom
 from sensor import Sensor
 
 # Point type
@@ -73,28 +74,34 @@ class SensorDevice(Sensor):
         self.mnt_orient = np.deg2rad(mnt_orient)
 
 
-    def update_orientation(self, rot_angle):
+    def update_placement(self, chassis_pos: Point, chassis_rot: float):
         """
-        Update the docked sensor position and orientation.
+        Update position and orientation of the sensor in the global frame
 
-        When the chassis rotates around its center sensor mounted on it
-        rotates around chassis's center.
-        This method places the sensor at the new global position.
+        This operation is necessary every time the vehicle moves and/or rotate.
+        In particular, when the chassis rotates around its center the mount
+        point of each sensor mounted on it rotates around chassis's center.
+        So at each chassis rotation we have to update not only the orientation
+        but also the position of each sensor.
+
+        This method places the sensor at the new global position needed by the
+        sensor to produce simulated rangemeasurements.
         """
 
-        rotation_angle = np.deg2rad(rot_angle)
+        chassis_rot_angle = np.deg2rad(chassis_rot)
 
         # Update absolute sensor orientation according with it the
         # orientation of the chassis
-        dev_orient = self.mnt_orient + rotation_angle
+        dev_orient = self.mnt_orient + chassis_rot_angle
 
-        # Calculate the rotation of the mount points
-        # New position related to the chassis
-        new_x, new_y = geom.rotate([self.mnt_pt], rotation_angle, rad=True)[0]
+        # Calculate the new position of the mount point of the sensor as
+        # effect of the chassis rotation
+        new_mnt_x, new_mnt_y = geom.rotate([self.mnt_pt], chassis_rot_angle,
+                                           rad=True)[0]
 
         # New absolute position
-        newdev_x = chassis_pos.x + new_x
-        newdev_y = chassis_pos.y + new_y
+        newdev_x = chassis_pos.x + new_mnt_x
+        newdev_y = chassis_pos.y + new_mnt_y
 
-        self.place((newdev_x, newdev_y), dev_orient)
+        self.place(Point(newdev_x, newdev_y), dev_orient, True)
 
