@@ -28,6 +28,7 @@ from flatland import FlatLand
 from sensor import Sensor
 from vehicle import Vehicle
 import geom_utils as geom
+from geom_utils import Point
 
 # Compose the simulated environment
 # The room
@@ -107,12 +108,12 @@ width = 15
 color = "k"
 
 # Create a vehicle and mount on it one sensor
-twv = Vehicle(length, width, "SBOT")
+twv = Vehicle("SBOT", length, width)
 print(twv)
 
 # Create a sensor and put it in the middle of the front side of the vehicle
 S1 = Sensor(40, 60, "S1")
-twv.mount_sensor((length/2, 0), 0, S1)
+twv.mount_sensor("S1", 40, 60, Point(length/2, 0), 0)
 
 # Put it into the room
 twv.plot()
@@ -140,11 +141,10 @@ for action in actions:
     elif act == "trn":
         twv.turn(val)
     elif act == "scan":
-        scan_data = twv.scan("all", angle_step=val)
+        scan_data = twv.scan("S1", angle_step=val)
         # Plot scan of each sensor
         for s_id in scan_data:
-            scan_meas = [t[1] for t in  scan_data[s_id]]
-            geom.plot(scan_meas)
+            geom.plot(scan_data[s_id])
     else:
         print("Unknown move {}".format(act))
 
