@@ -6,18 +6,28 @@
 Base class that allows implementation a vehicle with one or more sensors on
 board.
 The movement method allow to simulate realistic movements in a Flatland
-environment as if it were a physical object.
+environment as if it were a physical vehicle in a physical environment.
+
+The default vehile implemented is a two-wheels vehicle.
+
+Note
+----
+Angular attributes are always expressed in radian units
+Method parameters are always expressed in degrees
 """
 
 # Imports
 from trace import logger
 import shapes
 import numpy as np
-from collections import namedtuple
-import geom_utils as geom
-from sensor import Sensor
-from flatland import FlatLand
 import matplotlib.pyplot as plt
+from collections import namedtuple
+
+# Project imports
+import geom_utils as geom
+from sensor_device import SensorDevice
+from flatland import FlatLand
+
 
 # Point type
 Point = namedtuple("Point", ["x", "y"])
@@ -26,73 +36,33 @@ Point = namedtuple("Point", ["x", "y"])
 DataPath = namedtuple("DataPath", ["x", "y", "angle", "seq"]) 
 
 
-class SensorHook():
-    """
-    Stores all data related to the sensor mounting on the chassis and the
-    sensor itself.
-    
-    Angular data unit is radiant for all internal calculation even if 
-    when passed as input degrees are used.
-    """
-    def __init__(self, mnt_pt: Point, mnt_orient: float, device: Sensor):
-        """
-        Associate a sensor mount point (the sensor hook) to asensor device 
-        
-        Arguments:
-        :param mnt_pt: coordinates of the mount point in the chassis reference
-                    system
-        :type mnt_ot: Point
-        :param mnt_orient: anglular orientation of the sensor with respecgt 
-                           to the chassis.
-        :type mnt_orient: float in degrees
-        """
-        self.mnt_pt = mnt_pt
-        self.mnt_orient = mnt_orient
-        self.device = device
 
-    def update_dev_orient(self, chassis_pos: Point, chassis_angle: float):
-        """
-        Rotate the sensor hook and the connected device.
-        Whe the chassis rotates its center does not move but sensor mount
-        points rotate around it.
-
-        Arguments:
-        :param chassis_angle: angle of the chassis that mounts the device
-        :type chassis_angle: float in degreees
-        """
-        # Update absolute device orientation and according with it the 
-        # orientation of the chassis        
-        dev_orient = self.mnt_orient + chassis_angle
-        
-        # Calculate the rotation of the mount points
-        # New position related to the chassis
-        new_x, new_y = geom.rotate([self.mnt_pt], chassis_angle)[0]
-        
-        # New absolute position
-        newdev_x = chassis_pos.x + new_x
-        newdev_y = chassis_pos.y + new_y
-        
-        self.device.move((newdev_x, newdev_y), dev_orient)
     
 class ChassisShape(shapes.Rectangle):
     """
     ChassisShape is a modified Rectangle with a double line on the right
     side in order to mark the front side of the Vehicle.
     """
+    
     def __init__(self, base: float, height: float, gap: float, res: float = 0.1):
         """
         Initialize the base class and draw the second vertical line at
         right rectangle side.
 
-        Arguments:
-        :param base: the base of the rectangle along the x axis
-        :param height: the height of the rectangle along the y axis
-        :param gap: the distance between the right side of the rectangle and
-                    the second side drown internally to mark the front of
-                    the chassis
-        :param res: the distance among points in the sides of the rectangle
-                    Defaults to 0.1 unit
+        Parameters
+        ----------
+        base : float
+            the base of the rectangle along the x axis
+        height : float
+            the height of the rectangle along the y axis
+        gap : float
+            the distance between the right side of the rectangle and the second 
+            side drown internally to mark the front of the chassis
+        res : float
+            the distance among points in the sides of the rectangle.
+            Defaults to 0.1 unit
         """
+        
         # Init base class
         super().__init__(base, height, res)
 
@@ -110,20 +80,32 @@ class ChassisShape(shapes.Rectangle):
 
 class Vehicle():
     """
-    A Vehicle is chassis with some sensors onboard.
+    A Vehicle is a chassis with some sensors onboard.
+    
     Every time the vehicle moves, the positiona and the orientation of each
-    sensor must be updated
+    sensor will be updated
     """
-    def __init__(self, length, width, name = "Vehicle", color = "r"):
+    def __init__(self, name: str, length: float, width: float, color = "r"):
         """
         Defines dimensions and graphical aspect of the vehicle
+        
+        Parameters
+        ----------
+        name : str
+            name of the vehicle
+        length : float
+            vehicle orizontal dimension in its own reference system
+        width : float
+            vehicle vertical dimension in its own reference system
+        color : str
+            color string as allowed by matplotlib's plot method
         """
         # Position defaults to the origin of the reference system
         self.position = Point(0, 0)
 
         # Orientation is taken from the x (horizontal) axis and is stored
-        # in degrees but all calculation are performed in radiants
-        self.orientation = 0 # deg
+        # in radian
+        self.orientation = 0 # rad
         
         # Vehicle path.
         # List of vehicle position and orientation after every movement
@@ -138,13 +120,14 @@ class Vehicle():
         # Vehicle name will be shown at vehicle position
         self.name = name
 
-        # Shape. Set the gap between the two front lines to 0.5
+        # Vehicle Shape. 
+        # Set the gap between the two front lines to 0.5
         gap = 0.5
         self.shape = ChassisShape(length, width, gap)
         self.shape.color(color)
 
         # Sensor list as dictionay; this way you can read sensor by name
-        self.sensor_hooks = dict()
+        self.sensors = dict()
         
         # Flatland Environment 
         self.flatland = None
@@ -152,13 +135,15 @@ class Vehicle():
         # Tracing flag
         self.tracing = False
         
-        # Pose precision 
+        # Compose format string to print the pose of the vehicle with
+        # the precision desired
         self.pprec = 1 # one decimal digit, enough for dimensions in cm and degrees
         self.prec_str = "{:." + str(self.pprec) + "f}"
         self.format_str = "{}: " + "(" + self.prec_str + ", " + self.prec_str + ") " + self.prec_str + "°"
         # The expected string will have the format:
-        # <SRTNG>: (xxx.x, yyy.y) dddd.d°
-        
+        # <STRNG>: (xxx.x, yyy.y) dddd.d°
+
+
     def __str__(self):
         """
         Returns a string with basic vehicle data: 
@@ -169,9 +154,11 @@ class Vehicle():
         xpos, ypos = self.position
         return self.format_str.format(self.name, xpos, ypos, self.orientation)
 
+
     def trace(self, onoff: bool = False):
         """
         Set or unset the tracing functionality of vehicle.
+        
         If tracing is enable the light_plot method will be called at the
         end of each move or rotation.
         """
@@ -180,43 +167,39 @@ class Vehicle():
         else:
             self.tracing = False
 
-    def mount_sensor(self, mount_pt: Point, mount_angle: float, sensor: Sensor):
+
+    def mount_sensor(self, name: str, beam: float, range: float, mnt_pt: Point, mnt_orient: float):
         """
+        Pose a Sensor on the system reference of the vehicle.
+        
         Mounting a sensor on a chassis means to store the Sensor instance
         along with its mounting positions on the vehicle chassis.
         Mount point coordinates are related to the origin of the coordinate
         system of the chassis.
         These positions must be updated at each vehicle movement.
 
-        :Arguments:
-        :param mount_pt: sensor mount point on the chassis
-        :type mount_pt: Point
-        :param mount_angle: mounting angle of the sensor in degrees
-        :param sensor: Sensor instance
-        :returns: True if mounting succeded, False il mounting fails
+        Parameters
+        ----------
+        same paramters od SensorDevice class
+        
+        Return
+        ------
+        True if mounting succeded
+        False if mount point is outside the chassis.
         """
-        mount_x, mount_y = mount_pt
-        if ((mount_x > self.length/2) or (mount_x < -self.length/2)):
+
+        if ((mnt_pt.x > self.length/2) or (mnt_pt.x < -self.length/2)):
             return False
 
-        if ((mount_y > self.width/2) or (mount_y < -self.width/2)):
+        if ((mnt_pt.y > self.width/2) or (mnt_pt.y < -self.width/2)):
             return False
 
-        # Position the sensor
-        sensor.move(mount_pt, mount_angle)
-        sensor_data = SensorHook(mount_pt, mount_angle, sensor)
-
-        sens_name = sensor.name
-        self.sensor_hooks[sens_name] = sensor_data
-        msg = "Sensor '{}' mounted onto vehicle '{}'".format(sens_name, self.name)
-        logger.info(msg)
+        self.sensors[name] = SensorDevice(name, beam, range, mnt_pt, mnt_orient)
+        self.sensors[name].update_placement(self.position, self.orientation)
         return True
 
     def _draw_vehicle_shape(self):
-        """
-        Draws the vehicle shape according with its position and angular
-        orientation
-        """
+        """Draws the vehicle shape according with its position and angular orientation"""
         self.shape.reset()
         self.shape.rotate(self.orientation)
         posx, posy = self.position
@@ -225,6 +208,7 @@ class Vehicle():
     def _save_datapath(self):
         """
         Logs movements during the vehicle path.
+        
         The movement type (turn or move) allows to maintain a sequence into
         stored data for a better graphical representation
         """
@@ -235,15 +219,19 @@ class Vehicle():
     def model_turn(self, angle: float):
         """
         Returns the vehicle new orientation after the requested turn.
+        
         In this default method an ideal turn (without any kind of
         errors) is implemented.
         Override or overload this method to implement you own turn model.
 
-        :Arguments:
-        :param angle: rotation angle (positive to LEFT, negative to RIGHT)
-        :type angle: float degrees
+        Parameters
+        ----------
+        angle : float
+            rotation angle (positive to LEFT, negative to RIGHT)
 
-        :returns: the new orientation of the vehicle
+        Return
+        ------
+        the new orientation of the vehicle
         """
         # Positive angles perform rotation toward left, negative toward
         # right
@@ -252,23 +240,29 @@ class Vehicle():
 
     def turn(self, angle: float):
         """
-        Turns the vehicle and sensor on it of angle degrees in the desired
-        direction
+        Turn the vehicle.
+        
+        After turn all sensors mounted on the vehicle will have their position
+        and orientation updated accordingly with the new vehicle orientation.
 
-        :Arguments:
-        :param dir: turn direction: LEFT or RIGHT
-        :type dir: Vehicle.LEFT, Vehicle.RIGHT
-        :param angle: rotation angle
-        :type angle: float degrees
-        :returns: None
+        Parameters
+        ----------
+        angle : float
+            If angle > 0 turn direction LEFT
+            Otherwise turn direction RIGHT
+
+        Return
+        ------
+        None
         """
         # Update chassis orientation and orient its shape
         self.orientation = self.model_turn(angle)
         self._draw_vehicle_shape()
         
         # Update sensor orientation
-        for sensor_id in self.sensor_hooks:
-            self.sensor_hooks[sensor_id].update_dev_orient(self.position, self.orientation)
+        for sensor_id in self.sensors:
+            self.sensors[sensor_id].update_placement(self.position,
+                                                     self.orientation)
 
         # Save data path
         self._save_datapath()
@@ -284,6 +278,16 @@ class Vehicle():
         """
         Implements an ideal move forward of backward along the orientation
         of the vehicle.
+        
+        Parameters
+        ----------
+        distance : float
+            If distance > 0 move forward
+            Otherwise move backward
+            
+        Return
+        ------
+        None
         """
         abs_dist = np.abs(distance)
         
@@ -301,19 +305,25 @@ class Vehicle():
 
     def model_move(self, distance: float):
         """
+        Implement linear movement.
+        
         Returns the new position of the vehicle after the requested linear move.
         In this default method an ideal linear move is implemented.
         Positve values for distance are for forward movement, negative for 
         backward.
 
-        Override or overload this method to implement your own linear move 
+        Override or extend this method to implement your own linear move 
         model (for example taking into account deterministic or random errors).
 
-        :Arguments:
-        :param distance: distance at which the vehicle will stop. Negative values will be transformed in positive.
-        :type distance: float in length unit defined for the overall simulation.
-        :Return:
-        :type: tuple (x, y)
+        Parameters
+        ----------
+        distance : float
+            distance at which the vehicle will stop. 
+            Negative values will be transformed in positive.
+        
+        Return
+        ------
+        tuple (x, y)
         """
         x_move, y_move = self.linear_move(distance)
         move_pt = Point(x_move, y_move)
@@ -323,6 +333,7 @@ class Vehicle():
         y_dest = self.position.y + move_pt.y
         
         return (x_dest, y_dest)        
+
 
     def move(self, distance: float):
         """
@@ -341,9 +352,9 @@ class Vehicle():
         self._draw_vehicle_shape()
         
         # Now reposition all onboard sensors
-        for slot in self.sensor_hooks:
-            self.sensor_hooks[slot].update_dev_orient(self.position, self.orientation)
-
+        for sensor_id in self.sensors:
+            self.sensors[sensor_id].update_placement(self.position,
+                                                     self.orientation)
         # Save data path
         self._save_datapath()
 
@@ -354,6 +365,7 @@ class Vehicle():
         # Trace vehicle pose and orientation
         logger.debug(self.__str__())
 
+
     def load_env(self, flatland: FlatLand):
         """
         In order to interact with the virtual environment, the vehicle
@@ -363,14 +375,16 @@ class Vehicle():
         Optimization step:
         Since the vehicle cannot *see* objects that are positioned outside
         of the range of its sensors, the loaded environment will be filtered
-        and only surrounding points will be saved.
+        and only surrounding points will be loaded.
         """
         # Store flatland environment
         self.flatland = flatland
         
         # Push the environment into the sensors
-        for hook_id in self.sensor_hooks:
-            self.sensor_hooks[hook_id].device.load_env(self.flatland.venv)
+        for sensor_id in self.sensors:
+            self.sensors[sensor_id].load_env(self.flatland.venv)
+
+
 
 
     def scan(self, sensor_name: str, 
@@ -378,22 +392,34 @@ class Vehicle():
                 angle_to: float = 90, 
                 angle_step: float = 1):
         """
-        Performs a sensor scan of the virtual environment loaded.
-        It is possible to scan all sensors or a single sensor specifying its
-        name.
-        The same scan limits will be applaied to all sensors.
+        Perform a sensor scan of the virtual environment loaded.
         
+        It is possible to scan all sensors or a single sensor by name.
+        The same angle ranges will be applaied to all sensors.
         A dictionry of readings is returned with key the name of the sensor
+        
+        Parameters
+        ----------
+        sensor_name: str
+            Name of the sensoe to read
+        angle_from, angle_to, angle_step : float
+            See description of Sensor.scan() method
+            
+        Return
+        ------
+        {} empty dict in error case
+        {"sensor1": [(rho1, phi1), (rho2, phi2), ...], ...}
         """
         scan_data = dict()
         
         if sensor_name == "all":
-            for s_name in self.sensor_hooks:
-                sensor = self.sensor_hooks[s_name].device
-                scan_data[s_name] = sensor.scan(angle_from, angle_to, angle_step)
-        elif sensor_name in self.sensor_hooks:
-            sensor = self.sensor_hooks[sensor_name].device
-            scan_data[sensor_name] = sensor.scan(angle_from, angle_to, angle_step)
+            logger.debug("Scanning 'all' sensors")
+            for s_name in self.sensors:
+                logger.debug("Scan sensor '{}'".format(sname))
+                scan_data[s_name] = self.sensors[s_name].scan(angle_from, angle_to, angle_step)
+        elif sensor_name in self.sensors:
+            logger.debug("Scan sensor '{}'".format(sensor_name))
+            scan_data[sensor_name] = self.sensors[sensor_name].scan(angle_from, angle_to, angle_step)
         else:
             error_msg = "ERROR - Scan failed. Sensor '{}' not found".format(sensor_name)
             logger.error(error_msg)
@@ -405,8 +431,8 @@ class Vehicle():
         Add Vehicle shape and sensors to current plot
         """
         self.shape.plot()
-        for sensor in self.sensor_hooks:
-            self.sensor_hooks[sensor].device.plot()
+        for sensor in self.sensors:
+            self.sensors[sensor].plot()
 
         # Plot actual vehicle position
         geom.plot_point(self.position)
@@ -420,8 +446,8 @@ class Vehicle():
         A lighter version of plot method that plots only sensors and actual
         position of vehicle.
         """
-        for sensor in self.sensor_hooks:
-            self.sensor_hooks[sensor].device.plot()
+        for sensor_id in self.sensors:
+            self.sensors[sensor_id].plot()
 
         # Plot actual vehicle position
         geom.plot_point(self.position)
@@ -461,20 +487,22 @@ def main():
     color = "k"
 
     # Create a vehicle
-    twv = Vehicle(length, width, "SBOT")
+    twv = Vehicle("TWV", length, width)
     print(twv)
 
     # Create a sensor and put it in the middle of the front side of the vehicle
-    S1 = Sensor(40, 60, "S_Front")
-    twv.mount_sensor((length/2, 0), 0, S1)
-    twv.plot()
+    twv.mount_sensor(name="S_Front", beam=40, range=60, 
+                      mnt_pt=Point(length/2, 0), mnt_orient=0)
     
     # Create 2 more sensors and mount them at +/-45 deg into the chassis
-    S2 = Sensor(40, 60, "S_Left")
-    twv.mount_sensor((5,5), 45, S2)
-
-    S3 = Sensor(40, 60, "S_Right")
-    twv.mount_sensor((5, -5), -45, S3)
+    # Left sensor
+    twv.mount_sensor("S_Left", 40, 60, Point(5, 7.5), 45)
+    
+    # Right sensor
+    twv.mount_sensor("S_Right", 40, 60, Point(5, -7.5), -45)
+    
+    twv.plot()
+    twv.show()
     
     # Now turn vehicle left and right a few times
     twv.turn(45)
