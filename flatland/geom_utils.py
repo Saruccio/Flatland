@@ -13,6 +13,10 @@ Module with utility function for manipulation points in various coordinate syste
 from trace import logger
 import numpy as np
 import matplotlib.pyplot as plt
+from collections import namedtuple
+
+# Point definition
+Point = namedtuple("Point", ["x", "y"])
 
 
 def cart2pol(x: float, y: float):
