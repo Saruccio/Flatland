@@ -18,6 +18,12 @@ from collections import namedtuple
 # Point definition
 Point = namedtuple("Point", ["x", "y"])
 
+def str_point(point: tuple, precision: int = 1):
+    """Return a printed tuple with precision"""
+    prec_str = "{:." + str(precision) + "f}"
+    format_str = "(" + prec_str + ", " + prec_str + ")"
+    x, y = point
+    return format_str.format(x, y)
 
 def cart2pol(x: float, y: float):
     """Coordinate conversion fron cartesian (rectangular)to polar"""
@@ -212,6 +218,12 @@ def globalpos_to_localpos(point: tuple, local_sys: tuple) -> tuple:
     return (xl, yl)
 
 
+def to_localpos(points: list, local_sys: tuple) -> list:
+    """Utility function to apply 'globalpos_to_localpos' to a list of points"""
+
+    return [globalpos_to_localpos(point, local_sys) for point in points]
+
+
 def localpos_to_globalpos(point: tuple, local_sys: tuple) -> tuple:
     """
     Calculates the new point's coordinates (xl, yl) in the local coordinate
@@ -245,6 +257,13 @@ def localpos_to_globalpos(point: tuple, local_sys: tuple) -> tuple:
     yp = yo + xl*np.sin(alpha_rad) + yl*np.cos(alpha_rad)
 
     return (xp, yp)
+
+
+def to_globalpos(points: list, local_sys: tuple) -> list:
+    """Utility function to apply 'localpos_to_globalpos' to a list of points"""
+
+    return [localpos_to_globalpos(point, local_sys) for point in points]
+
 
 def tround(fpt: tuple):
     """
