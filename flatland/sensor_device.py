@@ -105,3 +105,21 @@ class SensorDevice(Sensor):
 
         self.place(Point(newdev_x, newdev_y), dev_orient, True)
 
+
+    def sys_ref(self):
+        """
+        Return the position and orientation of the sensor mounting the chassis
+        reference system.
+
+        Parameters
+        ----------
+        None
+
+        Return
+        ------
+        (mount_point, mount_orient, True)
+            The last element is always True because the mount orientation
+            is kept from value stored in the class in radian
+        """
+
+        return (self.mnt_pt, self.mnt_orient, True)
