@@ -21,6 +21,8 @@ sys.path.insert(0, os.path.abspath('../flatland'))
 
 
 from trace import logger
+logger.add("navigation_sim.log", mode="w")
+
 import copy
 
 import shapes
@@ -91,71 +93,87 @@ def table_constructor(side1, side2, leg_side, name):
     table = shapes.CompoundShape(legs, name)
     return table
 
-table = table_constructor(70, 120, 6, "table")
-table.traslate(50,250)
 
-# Compose flatland environment with all objects in it
-sim_env = FlatLand("Vehicle indoor navigation")
-sim_env.add_objects(room, pillar, chair1, chair2, table)
-logger.info("Bench points= {}".format(sim_env.size()))
+def simulator():
+    """Simulate vehicle movement with sensor readings and displays all on a map"""
 
-sim_env.show(live=True)
-#time.sleep(1)
+    table = table_constructor(70, 120, 6, "table")
+    table.traslate(50,250)
 
-# Vehicle sizes (all dimensione in cm)
-length = 8
-width = 15
-color = "k"
+    # Compose flatland environment with all objects in it
+    sim_env = FlatLand("Vehicle indoor navigation")
+    sim_env.add_objects(room, pillar, chair1, chair2, table)
+    logger.info("Bench points= {}".format(sim_env.size()))
 
-# Create a vehicle and mount on it one sensor
-twv = Vehicle("SBOT", length, width)
-print(twv)
+    sim_env.show(live=True)
+    #time.sleep(1)
 
-# Create a sensor and put it in the middle of the front side of the vehicle
-S1 = Sensor(40, 60, "S1")
-twv.mount_sensor("S1", 40, 60, Point(length/2, 0), 0)
+    # Vehicle sizes (all dimensione in cm)
+    length = 8
+    width = 15
+    color = "k"
 
-# Put it into the room
-twv.plot()
-twv.trace(False)
+    # Create a vehicle and mount on it one sensor
+    twv = Vehicle("SBOT", length, width)
+    print(twv)
 
-# Load the environment
-twv.load_env(sim_env)
+    # Create a sensor and put it in the middle of the front side of the vehicle
+    S1 = Sensor(40, 60, "S1")
+    twv.mount_sensor("S1", 40, 60, Point(length/2, 0), 0)
 
-# Prepare a list of movements
-actions = [
-            ("mv", 50), ("trn", 90), ("scan", 1),("mv", 30), ("scan", 1),
-            ("mv", 30), ("scan", 1), ("mv", 50), ("scan", 1),
-            ("mv", 50), ("scan", 1), ("trn", -45), ("scan", 1), ("mv", 40),
-            ("scan", 1), ("trn", 45), ("scan", 1), ("mv", 10), ("scan", 1),
-            ("trn", 90), ("scan", 1), ("trn", -180), ("scan", 1),
-            ("trn", 90), ("mv", 10), ("trn", 90), ("scan", 1),
-            ("trn", -180), ("scan", 1), ("trn", 90),
-            ("mv", 10), ("trn", 120), ("scan", 1),
-            ("trn", -180), ("mv", 20),
-            ]
-for action in actions:
-    act, val = action
-    if act == "mv":
-        twv.move(val)
-    elif act == "trn":
-        twv.turn(val)
-    elif act == "scan":
-        scan_data = twv.scan("S1", angle_step=val)
-        # Plot scan of each sensor
-        for s_id in scan_data:
-            geom.plot(scan_data[s_id])
-    else:
-        print("Unknown move {}".format(act))
+    # Put it into the room
+    twv.plot()
+    twv.show()
+    twv.trace(False)
 
-    # Trace the last position on the vehicle
-    twv.plot_path()
-    #twv.light_plot()
+    # Load the environment
+    twv.load_env(sim_env)
 
-    # Show overall picture
-    sim_env.show(True)
+    # Prepare a list of movements
+    actions = [
+                ("mv", 50), ("trn", 90), ("scan", 1),
+                ("mv", 30), ("scan", 1),
+                ("mv", 30), ("scan", 1),
+                ("mv", 50), ("scan", 1),
+                ("mv", 50), ("scan", 1),
+                ("trn", -45), ("scan", 1),
+                ("mv", 40), ("scan", 1),
+                ("trn", 45), ("scan", 1),
+                ("mv", 10), ("scan", 1),
+                ("trn", 90), ("scan", 1),
+                ("trn", -180), ("scan", 1),
+                ("trn", 90), ("mv", 10), ("trn", 90), ("scan", 1),
+                ("trn", -180), ("scan", 1),
+                ("trn", 90), ("mv", 10), ("trn", 120), ("scan", 1),
+                ("trn", -180), ("mv", 20),
+                ]
+    for action in actions:
+        act, val = action
+        if act == "mv":
+            twv.move(val)
+        elif act == "trn":
+            twv.turn(val)
+        elif act == "scan":
+            scan_data = twv.scan("all", angle_step=val)
+            map_data = twv.scan_to_map(scan_data)
+            # Plot scan of each sensor
+            for sensor_id in map_data:
+                #logger.debug("Map data {}: {}".format(sensor_id, map_data[sensor_id]))
+                geom.plot(map_data[sensor_id])
+        else:
+            print("Unknown move {}".format(act))
 
-twv.light_plot()
-sim_env.show()
+        # Trace the last position on the vehicle
+        twv.plot_path()
+        #twv.light_plot()
+
+        # Show overall picture
+        sim_env.show(True)
+
+    twv.light_plot()
+    sim_env.show()
+    return
 
 
+if __name__ == "__main__":
+    simulator()
