@@ -99,6 +99,11 @@ class Sensor():
         self.measured_point = ()
         self.detected_point = ()
 
+    def __str__(self):
+        """Format all relevant sensor parameter in a string"""
+        str_pos = geom.str_point(self.position)
+        return "'{}': {}, {:.1f}°".format(self.name, str_pos, np.rad2deg(self.orientation))
+
     def sensor_shape(self):
         """
         Returns an instance of the default sensor shape, an arrow in this case.

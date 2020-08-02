@@ -74,6 +74,12 @@ class SensorDevice(Sensor):
         self.mnt_orient = np.deg2rad(mnt_orient)
 
 
+    def __str__(self):
+        """Add to Sensor parameters SensorDevice mounting data"""
+        str_pos = geom.str_point(self.mnt_pt)
+        return "Dev [{}] {}, {:.1f}°".format(super().__str__(), str_pos, np.rad2deg(self.mnt_orient))
+
+
     def update_placement(self, chassis_pos: Point, chassis_rot: float):
         """
         Update position and orientation of the sensor in the global frame
@@ -86,18 +92,23 @@ class SensorDevice(Sensor):
 
         This method places the sensor at the new global position needed by the
         sensor to produce simulated rangemeasurements.
-        """
 
-        chassis_rot_angle = np.deg2rad(chassis_rot)
+        Parameters
+        ----------
+        chassis_pos : Point
+            chassis position after a traslation or rotation movement
+        chassis_rot: float
+            chassis orientation in radian units after a traslation or
+            rotation movement
+        """
 
         # Update absolute sensor orientation according with it the
         # orientation of the chassis
-        dev_orient = self.mnt_orient + chassis_rot_angle
+        dev_orient = self.mnt_orient + chassis_rot
 
         # Calculate the new position of the mount point of the sensor as
         # effect of the chassis rotation
-        new_mnt_x, new_mnt_y = geom.rotate([self.mnt_pt], chassis_rot_angle,
-                                           rad=True)[0]
+        new_mnt_x, new_mnt_y = geom.rotate([self.mnt_pt], chassis_rot, rad=True)[0]
 
         # New absolute position
         newdev_x = chassis_pos.x + new_mnt_x
@@ -117,9 +128,9 @@ class SensorDevice(Sensor):
 
         Return
         ------
-        (mount_point, mount_orient, True)
+        (mount_point.x, mount_point.y, mount_orient, True)
             The last element is always True because the mount orientation
             is kept from value stored in the class in radian
         """
 
-        return (self.mnt_pt, self.mnt_orient, True)
+        return (self.mnt_pt.x, self.mnt_pt.y, self.mnt_orient, True)
