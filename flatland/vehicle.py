@@ -18,6 +18,9 @@ Method parameters are always expressed in degrees
 
 # Imports
 from trace import logger
+logger.add("vehicle.log", mode="w")
+
+
 import shapes
 import numpy as np
 import matplotlib.pyplot as plt
@@ -135,24 +138,37 @@ class Vehicle():
         # Tracing flag
         self.tracing = False
         
-        # Compose format string to print the pose of the vehicle with
-        # the precision desired
-        self.pprec = 1 # one decimal digit, enough for dimensions in cm and degrees
-        self.prec_str = "{:." + str(self.pprec) + "f}"
-        self.format_str = "{}: " + "(" + self.prec_str + ", " + self.prec_str + ") " + self.prec_str + "°"
-        # The expected string will have the format:
-        # <STRNG>: (xxx.x, yyy.y) dddd.d°
-
 
     def __str__(self):
+        """Returns a string with all vehicle data"""
+        pos_str = geom.str_point(self.position)
+        out_str = "Vehicle '{}': {}, {:.1f}°".format(self.name, pos_str,
+                                                np.rad2deg(self.orientation))
+        out_str += "\n"
+        for sensor_id in self.sensors:
+            out_str += self.sensors[sensor_id].__str__() + "\n"
+        out_str += "\n"
+        return out_str
+
+
+    def _draw_vehicle_shape(self):
+        """Draws the vehicle shape according with its position and angular orientation"""
+        self.shape.reset()
+        self.shape.rotate(self.orientation, True)
+        posx, posy = self.position
+        self.shape.traslate(posx, posy)
+
+
+    def _save_datapath(self):
         """
-        Returns a string with basic vehicle data: 
-        -- name
-        -- position 
-        -- orientation
+        Logs movements during the vehicle path.
+        
+        The movement type (turn or move) allows to maintain a sequence into
+        stored data for a better graphical representation
         """
-        xpos, ypos = self.position
-        return self.format_str.format(self.name, xpos, ypos, self.orientation)
+        self.seq_counter += 1
+        pace = DataPath(self.position.x, self.position.y, self.orientation, self.seq_counter)
+        self.path.append(pace)
 
 
     def trace(self, onoff: bool = False):
@@ -166,6 +182,25 @@ class Vehicle():
             self.tracing = True
         else:
             self.tracing = False
+
+
+    def sys_ref(self):
+        """
+        Return the position and orientation of the vehicle with respect to the
+        external system reference
+
+        Parameters
+        ----------
+        None
+
+        Return
+        ------
+        (vehicle_position.x, vehicle_position.y, vehicle_orientation, True)
+            The last element is always True because the mount orientation
+            is kept from value stored in the class in radian
+        """
+
+        return (self.position.x, self.position.y, self.orientation, True)
 
 
     def mount_sensor(self, name: str, beam: float, range: float, mnt_pt: Point, mnt_orient: float):
@@ -198,45 +233,6 @@ class Vehicle():
         self.sensors[name].update_placement(self.position, self.orientation)
         return True
 
-    def _draw_vehicle_shape(self):
-        """Draws the vehicle shape according with its position and angular orientation"""
-        self.shape.reset()
-        self.shape.rotate(self.orientation)
-        posx, posy = self.position
-        self.shape.traslate(posx, posy)
-        
-    def _save_datapath(self):
-        """
-        Logs movements during the vehicle path.
-        
-        The movement type (turn or move) allows to maintain a sequence into
-        stored data for a better graphical representation
-        """
-        self.seq_counter += 1
-        pace = DataPath(self.position.x, self.position.y, self.orientation, self.seq_counter)
-        self.path.append(pace)
-
-    def model_turn(self, angle: float):
-        """
-        Returns the vehicle new orientation after the requested turn.
-        
-        In this default method an ideal turn (without any kind of
-        errors) is implemented.
-        Override or overload this method to implement you own turn model.
-
-        Parameters
-        ----------
-        angle : float
-            rotation angle (positive to LEFT, negative to RIGHT)
-
-        Return
-        ------
-        the new orientation of the vehicle
-        """
-        # Positive angles perform rotation toward left, negative toward
-        # right
-        rot_angle = self.orientation + angle
-        return rot_angle
 
     def turn(self, angle: float):
         """
@@ -248,6 +244,7 @@ class Vehicle():
         Parameters
         ----------
         angle : float
+            Rotation angle in degrees units.
             If angle > 0 turn direction LEFT
             Otherwise turn direction RIGHT
 
@@ -255,8 +252,12 @@ class Vehicle():
         ------
         None
         """
+        
+        # logger.debug("before_turn: {}".format(self.__str__()))
+        logger.debug("turn: {}°".format(angle)) 
+        
         # Update chassis orientation and orient its shape
-        self.orientation = self.model_turn(angle)
+        self.orientation = self.orientation + np.deg2rad(angle)
         self._draw_vehicle_shape()
         
         # Update sensor orientation
@@ -272,67 +273,9 @@ class Vehicle():
             self.light_plot()
 
         # Trace vehicle pose and orientation
-        logger.debug(self.__str__())
-            
-    def linear_move(self, distance: float):
-        """
-        Implements an ideal move forward of backward along the orientation
-        of the vehicle.
-        
-        Parameters
-        ----------
-        distance : float
-            If distance > 0 move forward
-            Otherwise move backward
-            
-        Return
-        ------
-        None
-        """
-        abs_dist = np.abs(distance)
-        
-        # Calculate the cartesian absolute coordinates of the destination point
-        x_move = abs_dist * np.cos(np.deg2rad(self.orientation))
-        y_move = abs_dist * np.sin(np.deg2rad(self.orientation))
-        
-        # Calculate the actual point
-        if distance < 0:
-            x_move = -x_move
-            y_move = -y_move
-            
-        return (x_move, y_move)
+        logger.debug("after turn: {}".format(self.__str__()))
 
 
-    def model_move(self, distance: float):
-        """
-        Implement linear movement.
-        
-        Returns the new position of the vehicle after the requested linear move.
-        In this default method an ideal linear move is implemented.
-        Positve values for distance are for forward movement, negative for 
-        backward.
-
-        Override or extend this method to implement your own linear move 
-        model (for example taking into account deterministic or random errors).
-
-        Parameters
-        ----------
-        distance : float
-            distance at which the vehicle will stop. 
-            Negative values will be transformed in positive.
-        
-        Return
-        ------
-        tuple (x, y)
-        """
-        x_move, y_move = self.linear_move(distance)
-        move_pt = Point(x_move, y_move)
-        
-        # Now traslate vehicle at that point
-        x_dest = self.position.x + move_pt.x
-        y_dest = self.position.y + move_pt.y
-        
-        return (x_dest, y_dest)        
 
 
     def move(self, distance: float):
@@ -347,7 +290,25 @@ class Vehicle():
         :type distance: float in length unit defined for the overall simulation.
          
         """
-        x_dest, y_dest = self.model_move(distance)
+        
+        # logger.debug("before move: {}".format(self.__str__()))
+        logger.debug("move: {}".format(distance))
+        
+        # Calculate the cartesian absolute coordinates of the destination point
+        abs_dist = np.abs(distance)
+        
+        x_move = abs_dist * np.cos(self.orientation)
+        y_move = abs_dist * np.sin(self.orientation)
+        
+        # Calculate the actual point
+        if distance < 0:
+            x_move = -x_move
+            y_move = -y_move
+        
+        # Now traslate vehicle at that point
+        x_dest = self.position.x + x_move
+        y_dest = self.position.y + y_move
+        
         self.position = Point(x_dest, y_dest)
         self._draw_vehicle_shape()
         
@@ -362,8 +323,7 @@ class Vehicle():
         if self.tracing is True:
             self.light_plot()
 
-        # Trace vehicle pose and orientation
-        logger.debug(self.__str__())
+        logger.debug("after move: {}".format(self.__str__()))
 
 
     def load_env(self, flatland: FlatLand):
@@ -383,8 +343,6 @@ class Vehicle():
         # Push the environment into the sensors
         for sensor_id in self.sensors:
             self.sensors[sensor_id].load_env(self.flatland.venv)
-
-
 
 
     def scan(self, sensor_name: str, 
@@ -415,7 +373,7 @@ class Vehicle():
         if sensor_name == "all":
             logger.debug("Scanning 'all' sensors")
             for s_name in self.sensors:
-                logger.debug("Scan sensor '{}'".format(sname))
+                logger.debug("---Scanning sensor '{}'".format(s_name))
                 scan_data[s_name] = self.sensors[s_name].scan(angle_from, angle_to, angle_step)
         elif sensor_name in self.sensors:
             logger.debug("Scan sensor '{}'".format(sensor_name))
@@ -425,6 +383,58 @@ class Vehicle():
             logger.error(error_msg)
             
         return scan_data
+
+
+    def scan_to_map(self, scan_data: dict, invert_rho_phi: bool = False):
+        """
+        Point transformation from sensor's local reference into the 'map' 
+        (global) reference system.
+        
+        Readings obtaiened from each SensorDevice are in polar coordinates and
+        are related to its local system reference.
+        This method implements these transformation reference:
+            - from polar to rectangular
+            - from sensor local reference to vehicle reference
+            - from vehicle reference to global (i.e. external) reference
+        The global, vehicle-external reference is the system reference of the
+        map built by the vehicle during its exploration.
+        The origin of the global reference system coincide with the position
+        of the vehicle at exploration start.
+        
+        Parameters
+        ----------
+        scan_data : dict
+            dictionary of range measurements as returned by 'scan' method
+        invert_rho_phi : bool
+            Real sensor can return polar readings in tutle (phi, rho) instead
+            of (rho, phi).
+            If True, the readings are transformed from (phi, rho) to (rho, phi).
+            Defaults to False
+        """
+        
+        map_scan = dict()
+        for sensor_id, readings in scan_data.items():
+            # Convert polar readings in radian
+            if invert_rho_phi:
+                rad_polar_readings = [(rho, np.deg2rad(deg_phi)) 
+                                    for deg_phi, rho in readings]
+            else:
+                rad_polar_readings = [(rho, np.deg2rad(deg_phi)) 
+                                    for rho, deg_phi in readings]
+                                    
+            rect_readings = geom.to_rect(rad_polar_readings)
+            
+            # Transform sensor reading in the vehicle reference system
+            sensor_ref = self.sensors[sensor_id].sys_ref()
+            vehicle_ref_readings = geom.to_globalpos(rect_readings, sensor_ref)
+            
+            # Transform vehicle readings into the map (external) reference
+            vehicle_ref = self.sys_ref()
+            map_readings = geom.to_globalpos(rect_readings, vehicle_ref)
+            map_scan[sensor_id] = map_readings
+            
+        return map_scan
+
 
     def plot(self):
         """
@@ -471,13 +481,13 @@ class Vehicle():
         plt.plot(xs, ys, pen)
         
 
-    def show(self):
+    def show(self, title: str = "No title", label: str = ""):
         """
         Shows the overall picture at this point.
         This function is ususlly usefull for debuggin purposes, because is
         in charge of the Flatland object to show the environment.
         """
-        geom.show()
+        geom.show(title, label)
 
 # Test sction ---------------------------------------------------------------
 def main():
@@ -488,7 +498,7 @@ def main():
 
     # Create a vehicle
     twv = Vehicle("TWV", length, width)
-    print(twv)
+    print("Vehicle print test: ", twv)
 
     # Create a sensor and put it in the middle of the front side of the vehicle
     twv.mount_sensor(name="S_Front", beam=40, range=60, 
@@ -502,51 +512,49 @@ def main():
     twv.mount_sensor("S_Right", 40, 60, Point(5, -7.5), -45)
     
     twv.plot()
-    twv.show()
+    twv.show("At origin")
     
     # Now turn vehicle left and right a few times
     twv.turn(45)
-    print(twv)
     twv.plot()
+    # twv.show("Turn 45°")
     
     twv.move(50)
-    print(twv)
     twv.plot()
+    # twv.show("Move 50")
     
     twv.turn(-20)
-    print(twv)    
     twv.plot()
-    
+    # twv.show("Turn -20°")
+        
     twv.move(50)
-    print(twv)
     twv.plot()
-    
+    # twv.show("Move 50")
+        
     twv.turn(-30)
-    print(twv)   
     twv.plot()
-    
+    # twv.show("Turn -30°")
+            
     twv.move(50)
-    print(twv)
     twv.plot()
-    
+    # twv.show("Move 50")
+        
     twv.turn(-40)
-    print(twv)   
     twv.plot()
-    
+    # twv.show("Turn -40°")
+        
     twv.move(70)
-    print(twv)
     twv.plot()
-    
+    # twv.show("Move 70")
+        
     twv.turn(45)
-    print(twv)   
     twv.plot()
-    
+    # twv.show("Turn 45°")
+        
     twv.move(-60)
-
-    # Plot it
     twv.plot()
-    twv.show()
-
+    twv.show("Move -60")
+    return
 
 
 if __name__ == "__main__":
