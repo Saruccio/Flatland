@@ -11,7 +11,7 @@ measures that can be used to compose a map or to test a navigation algorithm
 """
 
 from trace import logger
-logger.info("FlatLand")
+logger.debug("FlatLand")
 
 import geom_utils as geom
 
