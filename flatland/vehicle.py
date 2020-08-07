@@ -345,6 +345,26 @@ class Vehicle():
             self.sensors[sensor_id].load_env(self.flatland.venv)
 
 
+    def ping(self, sensor_name: str):
+        """Return single sensor reading"""
+        
+        ping_data = dict()
+        
+        if sensor_name == "all":
+            logger.debug("Ping from 'all' sensors")
+            for s_name in self.sensors:
+                logger.debug("---Ping sensor '{}'".format(s_name))
+                ping_data[s_name] = self.sensors[s_name].ping() 
+        elif sensor_name in self.sensors:
+            logger.debug("Ping sensor '{}'".format(sensor_name))
+            ping_data[sensor_name] = self.sensors[sensor_name].ping()
+        else:
+            error_msg = "ERROR - Ping failed. Sensor '{}' not found".format(sensor_name)
+            logger.error(error_msg)
+
+        return ping_data
+
+
     def scan(self, sensor_name: str, 
                 angle_from: float = -90, 
                 angle_to: float = 90, 
@@ -383,6 +403,16 @@ class Vehicle():
             logger.error(error_msg)
             
         return scan_data
+
+
+    def stop(self):
+        """In real vehicle send command to stops currect action"""
+        raise NotImplementedError()
+
+
+    def reset(self):
+        """In real vechile send command to reset vehicle firmware"""
+        raise NotImplementedError()
 
 
     def scan_to_map(self, scan_data: dict, invert_rho_phi: bool = False):
