@@ -20,7 +20,7 @@ Method parameters are always expressed in degrees
 from trace import logger
 logger.add("vehicle.log", mode="w")
 
-
+import shape
 import shapes
 import numpy as np
 import matplotlib.pyplot as plt
@@ -88,7 +88,7 @@ class Vehicle():
     Every time the vehicle moves, the positiona and the orientation of each
     sensor will be updated
     """
-    def __init__(self, name: str, length: float, width: float, color = "r"):
+    def __init__(self, name: str):
         """
         Defines dimensions and graphical aspect of the vehicle
         
@@ -96,10 +96,7 @@ class Vehicle():
         ----------
         name : str
             name of the vehicle
-        length : float
-            vehicle orizontal dimension in its own reference system
-        width : float
-            vehicle vertical dimension in its own reference system
+
         color : str
             color string as allowed by matplotlib's plot method
         """
@@ -116,18 +113,15 @@ class Vehicle():
         self.seq_counter = 0
 
         # Dimensions
-        self.length = length
-        self.width = width
-        self.color = color
+        self.length = 0.0
+        self.width = 0.0
+        self.color = "r"
 
         # Vehicle name will be shown at vehicle position
         self.name = name
 
         # Vehicle Shape. 
-        # Set the gap between the two front lines to 0.5
-        gap = 0.5
-        self.shape = ChassisShape(length, width, gap)
-        self.shape.color(color)
+        self.shape = None
 
         # Sensor list as dictionay; this way you can read sensor by name
         self.sensors = dict()
@@ -201,6 +195,57 @@ class Vehicle():
         """
 
         return (self.position.x, self.position.y, self.orientation, True)
+
+
+    def hw_params(self, length: float, width: float):
+        """
+        Set hardware parameters as physical dimensions etc.
+        
+        When modeling real hardware this method can be overwritten to retrieve
+        parameters values directly from the real vehicle.
+        The current implementation is for simulation purposes.
+        
+        Parameters
+        ----------
+        length : float
+            vehicle orizontal dimension in its own reference system
+        width : float
+            vehicle vertical dimension in its own reference system
+        """
+        
+        self.length = length
+        self.width = width
+
+
+    def set_shape(self, shape: shape.Shape = None, color: str = "r"):
+        """
+        Set the shape of the vehicle for graphical representation.
+        
+        This method must be called after 'hw_params' method in order to
+        use length and width vehicle dimensions.
+        
+        Parameters
+        ----------
+        shape : Shape
+            The shape used for the graphical representation of the vehicle.
+            If None, the default 'ChassisShape' will be assigned
+        
+        color : str
+            Color of the graphical representation of the vehicle.
+            Defautls to red ('r')
+        """
+
+        if shape is None:
+            # Set default chassis shape
+            # Set the gap between the two front lines to 0.5
+            gap = 0.5
+            self.shape = ChassisShape(self.length, self.width, gap)
+            self.shape.color(color)
+        else:
+            self.shape = shape
+            self.shape.color(color)
+
+        self._draw_vehicle_shape()
 
 
     def mount_sensor(self, name: str, beam: float, range: float, mnt_pt: Point, mnt_orient: float):
@@ -526,8 +571,10 @@ def main():
     width = 15
     color = "k"
 
-    # Create a vehicle
-    twv = Vehicle("TWV", length, width)
+    # Compose a vehicle
+    twv = Vehicle("TWV")
+    twv.hw_params(length, width)
+    twv.set_shape()
     print("Vehicle print test: ", twv)
 
     # Create a sensor and put it in the middle of the front side of the vehicle
@@ -584,6 +631,13 @@ def main():
     twv.move(-60)
     twv.plot()
     twv.show("Move -60")
+    
+    # Assign custom shape
+    custom_shape = ChassisShape(5.0, 15.0, 1)
+    twv.set_shape(custom_shape, 'b')
+    twv.plot()
+    twv.show()
+    
     return
 
 
