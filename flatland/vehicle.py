@@ -390,24 +390,16 @@ class Vehicle():
             self.sensors[sensor_id].load_env(self.flatland.venv)
 
 
-    def ping(self, sensor_name: str):
-        """Return single sensor reading"""
-        
-        ping_data = dict()
-        
-        if sensor_name == "all":
-            logger.debug("Ping from 'all' sensors")
-            for s_name in self.sensors:
-                logger.debug("---Ping sensor '{}'".format(s_name))
-                ping_data[s_name] = self.sensors[s_name].ping() 
-        elif sensor_name in self.sensors:
-            logger.debug("Ping sensor '{}'".format(sensor_name))
-            ping_data[sensor_name] = self.sensors[sensor_name].ping()
-        else:
+    def ping(self, sensor_name: str, angle: float):
+        """Return single sensor reading in a given direction"""
+
+        if sensor_name not in self.sensors:
             error_msg = "ERROR - Ping failed. Sensor '{}' not found".format(sensor_name)
             logger.error(error_msg)
-
-        return ping_data
+            return None
+            
+        logger.debug("Ping sensor '{}' at angle {}°".format(sensor_name, angle))
+        return self.sensors[sensor_name].ping(angle)
 
 
     def scan(self, sensor_name: str, 
