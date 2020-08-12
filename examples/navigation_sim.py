@@ -114,7 +114,9 @@ def simulator():
     color = "k"
 
     # Create a vehicle and mount on it one sensor
-    twv = Vehicle("SBOT", length, width)
+    twv = Vehicle("SBOT")
+    twv.hw_params(length, width)
+    twv.set_shape()
     print(twv)
 
     # Create a sensor and put it in the middle of the front side of the vehicle
