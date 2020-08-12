@@ -30,6 +30,9 @@ ARROW_BASE_X_TRASLATION = -ARROW_BASE/2
 # Default orientation is toward x axis (0 deg)
 ARROW_ORIENTATION = -90 # deg
 
+# Out of range value
+OUT_OF_RANGE = 255 # length units
+
 
 class Sensor():
     """
@@ -68,6 +71,7 @@ class Sensor():
         # Sensor physical ratings
         self.beam = np.deg2rad(beam)
         self.range = range
+        self.out_of_range = OUT_OF_RANGE
 
         # List of points in the range of the sensor.
         # The local points of the sensor can be calculated using only
@@ -360,6 +364,15 @@ class Sensor():
         self.measured_point = (measure, at_angle)
         return self.measured_point
 
+
+    def ping(self, angle: float):
+        """
+        Wrapper of 'read' method to perform a sensor reading in a direction.
+        
+        Paramters and return values are the same of the read method
+        """
+        return self.read(angle)
+        
 
     def scan(self, angle_from: float, angle_to: float, step: float = 1.0) -> list:
         """
