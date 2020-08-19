@@ -41,7 +41,7 @@ class Sensor():
     supplied.
     """
 
-    def __init__(self, name: str, beam: float, range: float):
+    def __init__(self, name: str, beam: float, range: float, rho_phi_type: bool = True):
         """
         Set physical sensor parametrs
 
@@ -49,11 +49,17 @@ class Sensor():
         ----------
         name : str
             Mandatory name it must be unique
+            
         beam: float
             sensor beam width in degrees
+            
         range: float
             maximum measurable distance
-
+            
+        rho_phi_type : bool
+            if True, the 'read' method return a tuple of the format (rho, phi),
+            otherwise a (phi, rho) tuple is returned
+            
         Into the class, angles are stored always in radiant
         """
         # Set sensor properties
@@ -72,6 +78,7 @@ class Sensor():
         self.beam = np.deg2rad(beam)
         self.range = range
         self.out_of_range = OUT_OF_RANGE
+        self.rho_phi_type = rho_phi_type
 
         # List of points in the range of the sensor.
         # The local points of the sensor can be calculated using only
@@ -361,7 +368,10 @@ class Sensor():
             measure = 0.0
 
         # Compose the measured point
-        self.measured_point = (measure, at_angle)
+        if self.rho_phi_type:
+            self.measured_point = (measure, at_angle)
+        else:
+            self.measured_point = (at_angle, measure)
         return self.measured_point
 
 
@@ -369,9 +379,21 @@ class Sensor():
         """
         Wrapper of 'read' method to perform a sensor reading in a direction.
         
-        Paramters and return values are the same of the read method
+        Paramters
+        ---------
+            same of the read method
+        
+        Return
+        ------
+        According with the 'rho_phi_type' flag the reading is always returned
+        in the rho, phi) format
         """
-        return self.read(angle)
+        if self.rho_phi_type:
+            rho, phi = self.read(angle)
+        else:
+            phi, rho = self.read(angle)
+        
+        return (rho, phi)
         
 
     def scan(self, angle_from: float, angle_to: float, step: float = 1.0) -> list:
@@ -423,9 +445,12 @@ class Sensor():
         # Run scanning
         measures = []
         for angle in scan_angles:
-            meas = self.read(angle)
-            if meas is not ():
-                measures.append(meas)
+            if self.rho_phi_type:
+                rho, phi = self.read(angle)
+            else:
+                phi, rho = self.read(angle)
+            
+            measures.append((rho, phi))
 
         # Now restore sensor orientation
         self.orientation = sensor_orientation
