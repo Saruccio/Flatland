@@ -27,7 +27,7 @@ from trace import logger
 from shapes import Circle, SeqPolygon
 from flatland import FlatLand
 import geom_utils as geom
-from sensor import Sensor
+from virtual_sensor import VirtualSensor, load_measures
 import numpy as np
 
 
@@ -66,7 +66,8 @@ desk_bench.show()
 # Define the sensor as a simulation of the ultrasonic sensor HC-SR04 and pose it
 # at the origin of the Flatland
 # The sensor orientation is horizontal
-S1 = Sensor(name="HC_SR04", beam=40, range=60)
+S1 = VirtualSensor(name="HC_SR04", beam=40, range=60, 
+                   mnt_pt=(0.0, 0.0), mnt_orient=90)
 S1.set_color("k")
 S1.place((0.0, 0.0), 0)
 
@@ -114,7 +115,7 @@ filepath = os.path.join(data_path, data_file)
 # as if they were its own virtual measuremens.
 # In order to distiguish them from the simulates ones, a red pen color will
 # be used for the plot.
-real_measures = S1.load_measures(filepath)
+real_measures = load_measures(S1, filepath)
 geom.plot(real_measures, pen_color="r")
 
 # Show environment and data

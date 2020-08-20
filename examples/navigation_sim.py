@@ -27,8 +27,7 @@ import copy
 
 import shapes
 from flatland import FlatLand
-from sensor import Sensor
-from vehicle import Vehicle
+from virtual_vehicle import VirtualVehicle
 import geom_utils as geom
 from geom_utils import Point
 
@@ -114,13 +113,12 @@ def simulator():
     color = "k"
 
     # Create a vehicle and mount on it one sensor
-    twv = Vehicle("SBOT")
+    twv = VirtualVehicle("SBOT")
     twv.hw_params(length, width)
     twv.set_shape()
     print(twv)
 
     # Create a sensor and put it in the middle of the front side of the vehicle
-    S1 = Sensor(40, 60, "S1")
     twv.mount_sensor("S1", 40, 60, Point(length/2, 0), 0)
 
     # Put it into the room
