@@ -31,6 +31,7 @@ import geom_utils as geom
 from virtual_sensor import VirtualSensor
 from vehicle import Vehicle
 from flatland import FlatLand
+from shapes import Circle
 
 
 # Point type
@@ -335,7 +336,7 @@ def main():
     color = "k"
 
     # Compose a vehicle
-    twv = Vehicle("TWV")
+    twv = VirtualVehicle("TWV")
     twv.hw_params(length, width)
     twv.set_shape()
     print("Vehicle print test: ", twv)
@@ -396,8 +397,12 @@ def main():
     twv.show("Move -60")
     
     # Assign custom shape
-    custom_shape = ChassisShape(5.0, 15.0, 1)
+    custom_shape = Circle(10.0)
     twv.set_shape(custom_shape, 'b')
+    twv.plot()
+    twv.show()
+    
+    twv.turn(90)
     twv.plot()
     twv.show()
     
