@@ -31,10 +31,14 @@ def cart2pol(x: float, y: float):
     phi = np.arctan2(y, x)
     return (rho, phi)
 
-def pol2cart(rho: float, phi: float):
+def pol2cart(rho: float, phi: float, rad: bool = True):
     """Coordinate conversion from polar to cartesian"""
-    x = rho*np.cos(phi)
-    y = rho*np.sin(phi)
+    if rad:
+        phi_rad = phi
+    else:
+        phi_rad = np.deg2rad(phi)
+    x = rho*np.cos(phi_rad)
+    y = rho*np.sin(phi_rad)
     return (x, y)
 
 def to_polar(points: list):
