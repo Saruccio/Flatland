@@ -76,7 +76,7 @@ class ChassisShape(shapes.Rectangle):
         rhos = [rho for rho, phi in shape_polar_pts]
         self.safe_radius = np.max(rhos)
 
-    def safe_radius(self):
+    def outer_radius(self):
         """Return the radius of the circumference circumscribed to the vehicle"""
         return self.safe_radius
 

@@ -79,6 +79,10 @@ class Vehicle():
 
         # Vehicle Shape. 
         self.shape = chassis_shape
+        
+        # Calculate safe region with a margin
+        self.safe_radius = chassis_shape.outer_radius()
+        self.safe_region = shapes.Circle(self.safe_radius, res=1)
 
         # Sensor list as dictionay; this way you can read sensor by name
         self.sensors = dict()
@@ -374,7 +378,7 @@ class Vehicle():
         return map_scan
 
 
-    def plot(self):
+    def plot(self, safe_reg: bool = False):
         """
         Add Vehicle shape and sensors to current plot
         """
@@ -388,8 +392,12 @@ class Vehicle():
         yn = yp + 0.3
         name_point = Point(xp, yn)
         geom.annotate_point(name_point, self.name)
+        
+        if safe_reg:
+            self.safe_region.plot()
 
-    def light_plot(self, show_name: bool=False):
+
+    def light_plot(self, show_name: bool=False, safe_reg: bool = False):
         """
         A lighter version of plot method that plots only sensors and actual
         position of vehicle.
@@ -404,6 +412,10 @@ class Vehicle():
             yn = yp + 0.3
             name_point = Point(xp, yn)
             geom.annotate_point(name_point, self.name)
+        
+        if safe_reg:
+            self.safe_region.plot()
+
 
     def plot_path(self, pen_color: str = "c"):
         """

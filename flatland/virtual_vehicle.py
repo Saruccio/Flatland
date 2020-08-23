@@ -278,58 +278,7 @@ class VirtualVehicle(Vehicle):
         return map_scan
 
 
-    def plot(self):
-        """
-        Add Vehicle shape and sensors to current plot
-        """
-        self.shape.plot()
-        for sensor in self.sensors:
-            self.sensors[sensor].plot()
 
-        # Plot actual vehicle position
-        geom.plot_point(self.position)
-        xp, yp = self.position
-        yn = yp + 0.3
-        name_point = Point(xp, yn)
-        geom.annotate_point(name_point, self.name)
-
-    def light_plot(self, show_name: bool=False):
-        """
-        A lighter version of plot method that plots only sensors and actual
-        position of vehicle.
-        """
-        for sensor_id in self.sensors:
-            self.sensors[sensor_id].plot()
-
-        # Plot actual vehicle position
-        geom.plot_point(self.position)
-        if show_name:
-            xp, yp = self.position
-            yn = yp + 0.3
-            name_point = Point(xp, yn)
-            geom.annotate_point(name_point, self.name)
-
-    def plot_path(self, pen_color: str = "c"):
-        """
-        Plots the overall sequence of points collected after each movement.
-        """
-        xs = []
-        ys = []
-        for data_pt in self.path:
-            xs.append(data_pt.x)
-            ys.append(data_pt.y)
-            
-        pen = pen_color + "--"
-        plt.plot(xs, ys, pen)
-        
-
-    def show(self, title: str = "No title", label: str = ""):
-        """
-        Shows the overall picture at this point.
-        This function is ususlly usefull for debuggin purposes, because is
-        in charge of the Flatland object to show the environment.
-        """
-        geom.show(title, label)
 
 # Test sction ---------------------------------------------------------------
 def main():
@@ -354,10 +303,7 @@ def main():
     
     # Right sensor
     twv.mount_sensor("S_Right", 40, 60, Point(-length/4, -width/2), -45)
-    safe_region = Circle(twv.shape.safe_radius, res=1)
-    safe_region.plot()
-    
-    twv.plot()
+    twv.plot(safe_reg=True)
     twv.show("At origin")
     
     # Now turn vehicle left and right a few times
