@@ -29,55 +29,13 @@ from collections import namedtuple
 # Project imports
 import geom_utils as geom
 from flatland import FlatLand
-
+from chassis_shape import ChassisShape
 
 # Point type
 Point = namedtuple("Point", ["x", "y"])
 
 # DataPath: position and orientation of the Vehicle
 DataPath = namedtuple("DataPath", ["x", "y", "angle", "seq"]) 
-
-
-
-    
-class ChassisShape(shapes.Rectangle):
-    """
-    ChassisShape is a modified Rectangle with a double line on the right
-    side in order to mark the front side of the Vehicle.
-    """
-    
-    def __init__(self, base: float, height: float, gap: float, res: float = 0.1):
-        """
-        Initialize the base class and draw the second vertical line at
-        right rectangle side.
-
-        Parameters
-        ----------
-        base : float
-            the base of the rectangle along the x axis
-        height : float
-            the height of the rectangle along the y axis
-        gap : float
-            the distance between the right side of the rectangle and the second 
-            side drown internally to mark the front of the chassis
-        res : float
-            the distance among points in the sides of the rectangle.
-            Defaults to 0.1 unit
-        """
-        
-        # Init base class
-        super().__init__(base, height, res)
-
-        # Add second side
-        xside = base - gap
-        yords = np.arange(0.0, height, res)
-        for y in yords:
-            self.points.append((xside, y))
-
-        # Traslate rectangle in order to be centered to the origin
-        self.traslate(-base/2, -height/2)
-        self.save()   # Save actual point configuration as
-        self.reset()
 
 
 class Vehicle():
@@ -87,7 +45,7 @@ class Vehicle():
     Every time the vehicle moves, the positiona and the orientation of each
     sensor will be updated
     """
-    def __init__(self, name: str):
+    def __init__(self, name: str, chassis_shape: ChassisShape):
         """
         Defines dimensions and graphical aspect of the vehicle
         
@@ -120,7 +78,7 @@ class Vehicle():
         self.name = name
 
         # Vehicle Shape. 
-        self.shape = None
+        self.shape = chassis_shape
 
         # Sensor list as dictionay; this way you can read sensor by name
         self.sensors = dict()
@@ -194,57 +152,6 @@ class Vehicle():
         """
 
         return (self.position.x, self.position.y, self.orientation, True)
-
-
-    def hw_params(self, length: float, width: float):
-        """
-        Set hardware parameters as physical dimensions etc.
-        
-        When modeling real hardware this method can be overwritten to retrieve
-        parameters values directly from the real vehicle.
-        The current implementation is for simulation purposes.
-        
-        Parameters
-        ----------
-        length : float
-            vehicle orizontal dimension in its own reference system
-        width : float
-            vehicle vertical dimension in its own reference system
-        """
-        
-        self.length = length
-        self.width = width
-
-
-    def set_shape(self, shape: shape.Shape = None, color: str = "r"):
-        """
-        Set the shape of the vehicle for graphical representation.
-        
-        This method must be called after 'hw_params' method in order to
-        use length and width vehicle dimensions.
-        
-        Parameters
-        ----------
-        shape : Shape
-            The shape used for the graphical representation of the vehicle.
-            If None, the default 'ChassisShape' will be assigned
-        
-        color : str
-            Color of the graphical representation of the vehicle.
-            Defautls to red ('r')
-        """
-
-        if shape is None:
-            # Set default chassis shape
-            # Set the gap between the two front lines to 0.5
-            gap = 0.5
-            self.shape = ChassisShape(self.length, self.width, gap)
-            self.shape.color(color)
-        else:
-            self.shape = shape
-            self.shape.color(color)
-
-        self._draw_vehicle_shape()
 
 
     def mount_sensor(self, name: str, beam: float, range: float, mnt_pt: Point, mnt_orient: float):

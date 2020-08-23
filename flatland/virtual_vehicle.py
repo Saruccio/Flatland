@@ -29,7 +29,7 @@ from collections import namedtuple
 # Project imports
 import geom_utils as geom
 from virtual_sensor import VirtualSensor
-from vehicle import Vehicle
+from vehicle import Vehicle, ChassisShape
 from flatland import FlatLand
 from shapes import Circle
 
@@ -48,7 +48,7 @@ class VirtualVehicle(Vehicle):
     Every time the vehicle moves, the positiona and the orientation of each
     sensor will be updated.
     """
-    def __init__(self, name: str):
+    def __init__(self, name: str, chassis_shape: ChassisShape):
         """
         Defines dimensions and graphical aspect of the vehicle
         
@@ -60,7 +60,7 @@ class VirtualVehicle(Vehicle):
         color : str
             color string as allowed by matplotlib's plot method
         """
-        super().__init__(name)
+        super().__init__(name, chassis_shape)
 
 
     def mount_sensor(self, name: str, beam: float, range: float, mnt_pt: Point, mnt_orient: float):
@@ -82,11 +82,14 @@ class VirtualVehicle(Vehicle):
         True if mounting succeded
         False if mount point is outside the chassis.
         """
+        # Get orizontal and vertical dimensions from vhicle shape
+        x_min, x_max = self.shape.x_min_max()
+        y_min, y_max = self.shape.y_min_max()
 
-        if ((mnt_pt.x > self.length/2) or (mnt_pt.x < -self.length/2)):
+        if ((mnt_pt.x < x_min) or (mnt_pt.x > x_max)):
             return False
 
-        if ((mnt_pt.y > self.width/2) or (mnt_pt.y < -self.width/2)):
+        if ((mnt_pt.y < y_min) or (mnt_pt.y > y_max)):
             return False
 
         self.sensors[name] = VirtualSensor(name, beam, range, mnt_pt, mnt_orient)
@@ -336,21 +339,23 @@ def main():
     color = "k"
 
     # Compose a vehicle
-    twv = VirtualVehicle("TWV")
-    twv.hw_params(length, width)
-    twv.set_shape()
+    # Set default Shape
+    twv_shape = ChassisShape(length, width)
+    twv = VirtualVehicle("TWV", twv_shape)
     print("Vehicle print test: ", twv)
 
     # Create a sensor and put it in the middle of the front side of the vehicle
     twv.mount_sensor(name="S_Front", beam=40, range=60, 
-                      mnt_pt=Point(length/2, 0), mnt_orient=0)
+                      mnt_pt=Point(length/4, 0), mnt_orient=0)
     
     # Create 2 more sensors and mount them at +/-45 deg into the chassis
     # Left sensor
-    twv.mount_sensor("S_Left", 40, 60, Point(5, 7.5), 45)
+    twv.mount_sensor("S_Left", 40, 60, Point(-length/4, width/2), 45)
     
     # Right sensor
-    twv.mount_sensor("S_Right", 40, 60, Point(5, -7.5), -45)
+    twv.mount_sensor("S_Right", 40, 60, Point(-length/4, -width/2), -45)
+    safe_region = Circle(twv.shape.safe_radius, res=1)
+    safe_region.plot()
     
     twv.plot()
     twv.show("At origin")
@@ -396,11 +401,6 @@ def main():
     twv.plot()
     twv.show("Move -60")
     
-    # Assign custom shape
-    custom_shape = Circle(10.0)
-    twv.set_shape(custom_shape, 'b')
-    twv.plot()
-    twv.show()
     
     twv.turn(90)
     twv.plot()
