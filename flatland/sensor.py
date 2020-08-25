@@ -41,7 +41,7 @@ class Sensor():
     supplied.
     """
 
-    def __init__(self, name: str, beam: float, range: float, rho_phi_type: bool = True):
+    def __init__(self, name: str, beam: float, range: float, accuracy: float, rho_phi_type: bool = True):
         """
         Set physical sensor parametrs
 
