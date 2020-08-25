@@ -82,10 +82,13 @@ class Vehicle():
         
         # Calculate safe region with a margin
         self.safe_radius = chassis_shape.outer_radius()
+        
+        # Safe region shape
         self.safe_region = shapes.Circle(self.safe_radius, res=1)
 
         # Sensor list as dictionay; this way you can read sensor by name
         self.sensors = dict()
+        self.max_sensor_accuracy = 0
         
         # Flatland Environment 
         self.flatland = None
@@ -105,6 +108,14 @@ class Vehicle():
         out_str += "\n"
         return out_str
 
+    def _calculate_safe_radius(self):
+        """Calculate safe radius taking into account the max accuracy value of sensors"""
+        max_accuracy_val = 0
+        for sensor_id in self.sensors:
+            if self.sensors[sensor_id].accuracy > max_accuracy_val:
+                max_accuracy_val = self.sensors[sensor_id].accuracy
+        
+        self.safe_radius = chassis_shape.outer_radius() + max_accuracy_val
 
     def _draw_vehicle_shape(self):
         """Draws the vehicle shape according with its position and angular orientation"""
@@ -158,10 +169,16 @@ class Vehicle():
         return (self.position.x, self.position.y, self.orientation, True)
 
 
-    def mount_sensor(self, name: str, beam: float, range: float, mnt_pt: Point, mnt_orient: float):
+    def mount_sensor(self, name: str, beam: float, range: float, accuracy: float, mnt_pt: Point, mnt_orient: float):
+        """Base behaviour is to update safe-radius of the vehicle taking into
+        account sensor accuracy
         """
-        """
-        raise NotImplementedError()
+        if accuracy > self.max_sensor_accuracy:
+            self.max_sensor_accuracy = accuracy
+        self.safe_radius = self.shape.outer_radius() + self.max_sensor_accuracy
+        
+        # Update safe region shape
+        self.safe_region = shapes.Circle(self.safe_radius, res=1)
 
 
     def turn(self, angle: float):
@@ -447,23 +464,24 @@ def main():
     color = "k"
 
     # Compose a vehicle
-    twv = Vehicle("TWV")
-    twv.hw_params(length, width)
-    twv.set_shape()
+    # Set default Shape
+    twv_shape = ChassisShape(length, width)
+    # Compose a vehicle
+    twv = Vehicle("TWV", twv_shape)
     print("Vehicle print test: ", twv)
 
     # Create a sensor and put it in the middle of the front side of the vehicle
-    twv.mount_sensor(name="S_Front", beam=40, range=60, 
-                      mnt_pt=Point(length/2, 0), mnt_orient=0)
+    twv.mount_sensor(name="S_Front", beam=40, range=60, accuracy=2,
+                      mnt_pt=Point(length/4, 0), mnt_orient=0)
     
     # Create 2 more sensors and mount them at +/-45 deg into the chassis
     # Left sensor
-    twv.mount_sensor("S_Left", 40, 60, Point(5, 7.5), 45)
+    twv.mount_sensor("S_Left", 40, 60, 2, Point(-length/4, width/2), 45)
     
     # Right sensor
-    twv.mount_sensor("S_Right", 40, 60, Point(5, -7.5), -45)
+    twv.mount_sensor("S_Right", 40, 60, 2, Point(-length/4, -width/2), -45)
     
-    twv.plot()
+    twv.plot(safe_reg=True)
     twv.show("At origin")
     
     # Now turn vehicle left and right a few times
@@ -506,12 +524,6 @@ def main():
     twv.move(-60)
     twv.plot()
     twv.show("Move -60")
-    
-    # Assign custom shape
-    custom_shape = ChassisShape(5.0, 15.0, 1)
-    twv.set_shape(custom_shape, 'b')
-    twv.plot()
-    twv.show()
     
     return
 

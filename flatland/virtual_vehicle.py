@@ -63,7 +63,7 @@ class VirtualVehicle(Vehicle):
         super().__init__(name, chassis_shape)
 
 
-    def mount_sensor(self, name: str, beam: float, range: float, mnt_pt: Point, mnt_orient: float):
+    def mount_sensor(self, name: str, beam: float, range: float, accuracy: float, mnt_pt: Point, mnt_orient: float):
         """
         Pose a Sensor on the system reference of the vehicle.
         
@@ -82,6 +82,9 @@ class VirtualVehicle(Vehicle):
         True if mounting succeded
         False if mount point is outside the chassis.
         """
+        # Call baseclass method 
+        super().mount_sensor(name, beam, range, accuracy, mnt_pt, mnt_orient)
+        
         # Get orizontal and vertical dimensions from vhicle shape
         x_min, x_max = self.shape.x_min_max()
         y_min, y_max = self.shape.y_min_max()
@@ -92,7 +95,7 @@ class VirtualVehicle(Vehicle):
         if ((mnt_pt.y < y_min) or (mnt_pt.y > y_max)):
             return False
 
-        self.sensors[name] = VirtualSensor(name, beam, range, mnt_pt, mnt_orient)
+        self.sensors[name] = VirtualSensor(name, beam, range, accuracy, mnt_pt, mnt_orient)
         self.sensors[name].update_placement(self.position, self.orientation)
         return True
 
@@ -294,15 +297,15 @@ def main():
     print("Vehicle print test: ", twv)
 
     # Create a sensor and put it in the middle of the front side of the vehicle
-    twv.mount_sensor(name="S_Front", beam=40, range=60, 
+    twv.mount_sensor(name="S_Front", beam=40, range=60, accuracy=2,
                       mnt_pt=Point(length/4, 0), mnt_orient=0)
     
     # Create 2 more sensors and mount them at +/-45 deg into the chassis
     # Left sensor
-    twv.mount_sensor("S_Left", 40, 60, Point(-length/4, width/2), 45)
+    twv.mount_sensor("S_Left", 40, 60, 2, Point(-length/4, width/2), 45)
     
     # Right sensor
-    twv.mount_sensor("S_Right", 40, 60, Point(-length/4, -width/2), -45)
+    twv.mount_sensor("S_Right", 40, 60, 2, Point(-length/4, -width/2), -45)
     twv.plot(safe_reg=True)
     twv.show("At origin")
     
