@@ -50,7 +50,7 @@ class VirtualSensor(Sensor):
     Angular data unit is radiant for all internal calculation even if,
     when passed as input, degrees are used.
     """
-    def __init__(self, name: str, beam: float, range: float, mnt_pt: Point, mnt_orient: float):
+    def __init__(self, name: str, beam: float, range: float, accuracy: float, mnt_pt: Point, mnt_orient: float):
         """
         Create a Sensor with chassis positioning information.
 
@@ -70,8 +70,8 @@ class VirtualSensor(Sensor):
         """
 
         # Init base class
-        super().__init__(name, beam, range)
-        
+        super().__init__(name, beam, range, accuracy)
+
         # List of points in the range of the sensor.
         # The local points of the sensor can be calculated using only
         # these boints because the other cannot be detected by the sensor.
@@ -330,7 +330,7 @@ class VirtualSensor(Sensor):
         to make virtual readings
         """
         super().traslate(position, spov)
-        
+
         # As the sensor has moved, reconstruct its point of view
         if spov is True:
             self._sensor_point_of_view()
@@ -400,10 +400,10 @@ def main():
     # Sensor mounting point
     mount_point = Point(0, 0)
     mount_orientation = 45 # deg
-    sensor = VirtualSensor(range=70, beam=30, name="Sensor1", 
+    sensor = VirtualSensor(range=70, beam=30, name="Sensor1", accuracy=2,
                            mnt_pt=mount_point, mnt_orient=mount_orientation)
     sensor.traslate((100, 200))
-    
+
     sensor.show()
 
 
