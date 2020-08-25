@@ -118,7 +118,7 @@ def simulator():
     print(twv)
 
     # Create a sensor and put it in the middle of the front side of the vehicle
-    twv.mount_sensor(name="S_Front", beam=40, range=60, 
+    twv.mount_sensor(name="S_Front", beam=40, range=60, accuracy=2,
                       mnt_pt=Point(length/4, 0), mnt_orient=0)
 
     # Put it into the room

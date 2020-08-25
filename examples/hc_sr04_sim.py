@@ -72,12 +72,12 @@ logger.info("Bench points= {}".format(sim_env.size()))
 
 # Define an configure two sensors
 # S1 - HC-SR04
-S1 = VirtualSensor(name="HC-SR04_01", beam=30, range=50, mnt_pt=(0, 0), mnt_orient=90)
+S1 = VirtualSensor(name="HC-SR04_01", beam=30, range=50, accuracy=2, mnt_pt=(0, 0), mnt_orient=90)
 S1.load_env(sim_env.venv)
 S1.place((175, 300), 45)
 
 # S2 - HC-SR04
-S2 = VirtualSensor(name="HC-SR04_02", beam=45, range=90, mnt_pt=(0, 0), mnt_orient=90)
+S2 = VirtualSensor(name="HC-SR04_02", beam=45, range=90, accuracy=2, mnt_pt=(0, 0), mnt_orient=90)
 S2.set_color("y")
 
 # Supply virtual environment to sensors
