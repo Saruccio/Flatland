@@ -411,6 +411,7 @@ class Vehicle():
         geom.annotate_point(name_point, self.name)
         
         if safe_reg:
+            self.safe_region.move(xp, yp)
             self.safe_region.plot()
 
 
