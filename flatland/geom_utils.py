@@ -31,6 +31,28 @@ def cart2pol(x: float, y: float):
     phi = np.arctan2(y, x)
     return (rho, phi)
 
+def rect2polar(rect_pt: tuple, rad: bool = True):
+    """Format conversion from rectangular to polar tuple
+
+    Parameters
+    ----------
+    rect_pt : (x, y) tuple
+    rad : bool
+        signal the unit desired for the returned angle. Defaults to radian.
+
+    Return
+    ------
+    (rho, phi) tuple with the unit of the angle selected by the flag
+    """
+    x, y = rect_pt
+    rho, rad_phi = cart2pol()
+    if rad is True:
+        phi = rad_phi
+    else:
+        phi = np.rad2deg(rad_phi)
+    return (rho, phi)
+
+
 def pol2cart(rho: float, phi: float, rad: bool = True):
     """Coordinate conversion from polar to cartesian"""
     if rad:
@@ -40,6 +62,23 @@ def pol2cart(rho: float, phi: float, rad: bool = True):
     x = rho*np.cos(phi_rad)
     y = rho*np.sin(phi_rad)
     return (x, y)
+
+def polar2rect(polar_pt: tuple, rad: bool = True):
+    """Format conversion from polar to rectangular tuple
+
+    Paramaters
+    ----------
+    polar_pt : (rho, phi) tuple
+    rad : bool
+        signal the unit used for angle. Defaults to radian
+
+    Return
+    ------
+    (x, y) tuple
+    """
+    rho, phi = polar_pt
+    return pol2cart(rho, phi, rad)
+
 
 def to_polar(points: list):
     """Convert all points (x, y) contained in a list from cartesian coordinates to polar ones"""
@@ -55,6 +94,35 @@ def to_rect(points):
     for point in points:
         cart_points.append(pol2cart(*point))
     return cart_points
+
+def segment_length(pt1: tuple, pt2: tuple, coord: str, rad: bool=True):
+    """Return the distance between two points
+
+    Parameters
+    ----------
+    pt1 : tuple
+    pt2 : tuple
+    coord : str
+        allows to specify the type of coordinate system used by pt1 and pt2.
+        If "rect" or "cart" both points are in cartesian coordinates tuples (x, y).
+        If "polar" both points are in polar coordinates tuples (rho, phi)
+    rad : bool
+        flag valid only if points are expressed in polar coordinates indicating
+        if phi angle is in radian or degrees.
+        Defaults to radian
+
+    Return
+    ------
+    distance : float
+    """
+    assert coord == "rect" or coord == "cart" or coord == "polar", "'coord' values allowed are 'rect', 'cart' or 'polar'"
+    if coord == "polar":
+        x1, y1 = polar2rect(pt1, rad)
+        x2, y2 = polar2rect(pt2, rad)
+    else:
+        x1, y1 = pt1
+        x2, y2 = pt2
+    return np.sqrt((x1 - x2)**2 + (y1 - y2)**2)
 
 def rotate(points: list, angle: float, rad: bool = False):
     """Rotates point in alist
